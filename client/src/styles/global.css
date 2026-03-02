@@ -1,0 +1,86 @@
+@import './variables.css';
+@import './animations.css';
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family-main);
+    background-color: var(--color-background);
+    color: var(--color-text-main);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    /* Prevent horizontal scroll with animations */
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-family-serif);
+    font-weight: 400;
+    /* Lighter weight for luxury feel */
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+}
+
+p {
+    letter-spacing: 0.01em;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+}
+
+button,
+input,
+select {
+    font-family: inherit;
+    outline: none;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    background: none;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.container {
+    width: 100%;
+    max-width: 1400px;
+    /* Wider for editorial feel */
+    margin: 0 auto;
+    padding: 0 var(--space-24);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-light);
+}
