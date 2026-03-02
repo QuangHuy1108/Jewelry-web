@@ -1,86 +1,67 @@
-@import './variables.css';
-@import './animations.css';
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;500;600&display=swap');
+@import './motion.css';
+@import "tailwindcss";
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+@theme {
+  --color-brand-black: #0F0F0F;
+  --color-brand-white: #FAFAFA;
+  --color-brand-beige: #EAE6DF;
+  --color-brand-gold: #C2A878;
+  --color-brand-dark-gray: #333333;
+  --color-brand-light-gray: #F0F0F0;
+
+  --font-serif: 'Outfit', serif;
+  --font-sans: 'Inter', sans-serif;
+
+  --ease-luxury: cubic-bezier(0.83, 0, 0.17, 1);
+  --ease-slow: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-body {
-    font-family: var(--font-family-main);
-    background-color: var(--color-background);
-    color: var(--color-text-main);
-    line-height: 1.6;
+@layer base {
+  body {
+    background-color: var(--color-brand-white);
+    color: var(--color-brand-black);
+    overflow-x: hidden;
+    font-family: var(--font-sans);
+    position: relative;
+    scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
-    /* Prevent horizontal scroll with animations */
-}
+  }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-    font-family: var(--font-family-serif);
-    font-weight: 400;
-    /* Lighter weight for luxury feel */
-    line-height: 1.2;
-    letter-spacing: 0.02em;
-}
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-serif);
+    font-weight: 300;
+  }
 
-p {
-    letter-spacing: 0.01em;
-}
+  /* Grain Texture Background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.04;
+    background-image: url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+  }
 
-a {
-    text-decoration: none;
-    color: inherit;
-    transition: all 0.3s ease;
-}
+  /* Disable grain on mobile for performance */
+  @media (max-width: 768px) {
+    body::before {
+      display: none;
+    }
+  }
 
-button,
-input,
-select {
-    font-family: inherit;
-    outline: none;
-}
-
-button {
-    cursor: pointer;
-    border: none;
-    background: none;
-}
-
-img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-}
-
-.container {
-    width: 100%;
-    max-width: 1400px;
-    /* Wider for editorial feel */
-    margin: 0 auto;
-    padding: 0 var(--space-24);
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--color-surface);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--color-border);
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--color-text-light);
+  ::selection {
+    background-color: var(--color-brand-gold);
+    color: var(--color-brand-white);
+  }
 }

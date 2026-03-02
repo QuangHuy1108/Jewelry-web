@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCartStore, useUserStore, useUIStore } from '../../store';
-import { ShoppingBag, User, Menu, Search } from 'lucide-react';
+import { ShoppingBag, User, Menu, Search, Phone, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
@@ -25,7 +25,7 @@ const Navbar = () => {
             }
         };
 
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
@@ -43,73 +43,60 @@ const Navbar = () => {
             initial="hidden"
             animate="visible"
             variants={navAnimation}
-            style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100%',
-                zIndex: 50,
-                padding: scrolled ? 'var(--space-16) var(--space-32)' : 'var(--space-24) var(--space-32)',
-                backgroundColor: transparent ? 'transparent' : 'rgba(255, 255, 255, 0.98)',
-                color: transparent ? 'var(--color-secondary)' : 'var(--color-primary)',
-                backdropFilter: transparent ? 'none' : 'blur(10px)',
-                borderBottom: transparent ? '1px solid rgba(255,255,255,0.1)' : '1px solid var(--color-border)',
-                transition: 'padding 0.4s ease, background-color 0.4s ease, color 0.4s ease',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-            }}
+            className={`fixed top-0 left-0 w-full z-50 flex items-center justify-between transition-all duration-700 ease-in-out
+                ${scrolled ? 'py-4 px-6 md:px-12 bg-white/95 backdrop-blur-md text-brand-black shadow-sm'
+                    : 'py-6 px-6 md:px-12 bg-transparent text-brand-white'}`}
         >
-            {/* Left - Hamburger / Links (Desktop) */}
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 'var(--space-24)' }}>
-                <button style={{ color: 'inherit', display: 'flex' }} className="mobile-menu-btn">
-                    <Menu strokeWidth={1.5} />
+            {/* Left - Menu & Search */}
+            <div className="flex-1 flex items-center gap-6">
+                <button className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+                    <Menu strokeWidth={1.5} size={24} />
+                    <span className="hidden md:block text-sm uppercase tracking-widest">Menu</span>
                 </button>
-                <div style={{ display: 'flex', gap: 'var(--space-24)' }} className="desktop-links">
-                    <Link to="/shop" className="nav-link" style={{ fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Shop</Link>
-                    <Link to="#" className="nav-link" style={{ fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Collections</Link>
-                    <Link to="#" className="nav-link" style={{ fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Our Story</Link>
-                </div>
+                <button className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+                    <Search strokeWidth={1.5} size={22} />
+                    <span className="hidden md:block text-sm uppercase tracking-widest">Search</span>
+                </button>
             </div>
 
             {/* Center - Logo */}
-            <Link to="/" style={{
-                fontSize: scrolled ? '1.8rem' : '2.2rem',
-                fontWeight: '400',
-                fontFamily: 'var(--font-family-serif)',
-                letterSpacing: '0.05em',
-                transition: 'font-size 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)'
-            }}>
-                Luxe Gems
-            </Link>
+            <div className="flex-1 flex justify-center">
+                <Link
+                    to="/"
+                    className={`font-serif tracking-widest transition-all duration-700 ${scrolled ? 'text-2xl md:text-3xl' : 'text-3xl md:text-4xl'}`}
+                >
+                    LUXE GEMS
+                </Link>
+            </div>
 
-            {/* Right - Icons */}
-            <div style={{ flex: 1, display: 'flex', gap: 'var(--space-24)', alignItems: 'center', justifyContent: 'flex-end' }}>
-                <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} style={{ color: 'inherit', display: 'flex' }}>
-                    <Search strokeWidth={1.5} size={22} />
-                </motion.button>
+            {/* Right - Call, Wishlist, Account, Cart */}
+            <div className="flex-1 flex items-center justify-end gap-5 md:gap-8">
+                <button className="hidden lg:flex items-center gap-2 hover:opacity-70 transition-opacity">
+                    <Phone strokeWidth={1.5} size={20} />
+                    <span className="text-sm uppercase tracking-widest">Call Us</span>
+                </button>
+
+                <button className="hover:opacity-70 transition-opacity">
+                    <Heart strokeWidth={1.5} size={22} />
+                </button>
 
                 {userInfo ? (
-                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }} className="user-menu">
-                        <motion.span whileHover={{ scale: 1.05 }} style={{ fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 'var(--space-8)' }}>
-                            <User strokeWidth={1.5} size={22} />
-                            <span className="desktop-links">{userInfo.name.split(' ')[0]}</span>
-                        </motion.span>
-                        <button onClick={logout} style={{ color: 'inherit', fontSize: '0.8rem', marginLeft: 'var(--space-16)', textTransform: 'uppercase', letterSpacing: '0.05em' }} className="nav-link desktop-links">Logout</button>
+                    <div className="relative flex items-center group cursor-pointer">
+                        <User strokeWidth={1.5} size={22} />
+                        <span className="hidden md:block ml-2 text-sm uppercase tracking-widest">{userInfo.name.split(' ')[0]}</span>
+                        <div className="absolute top-full right-0 mt-4 bg-white text-brand-black shadow-lg py-2 px-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
+                            <button onClick={logout} className="text-sm uppercase tracking-widest whitespace-nowrap hover:text-brand-gold transition-colors">Logout</button>
+                        </div>
                     </div>
                 ) : (
-                    <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                        <Link to="/login" style={{ color: 'inherit', display: 'flex' }}>
-                            <User strokeWidth={1.5} size={22} />
-                        </Link>
-                    </motion.div>
+                    <Link to="/login" className="hover:opacity-70 transition-opacity">
+                        <User strokeWidth={1.5} size={22} />
+                    </Link>
                 )}
 
-                <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
+                <button
                     onClick={openCart}
-                    style={{ position: 'relative', color: 'inherit', display: 'flex' }}
+                    className="relative hover:opacity-70 transition-opacity flex items-center"
                 >
                     <ShoppingBag strokeWidth={1.5} size={22} />
                     <AnimatePresence>
@@ -119,38 +106,15 @@ const Navbar = () => {
                                 animate={{ scale: 1, opacity: 1 }}
                                 exit={{ scale: 0, opacity: 0 }}
                                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                                style={{
-                                    position: 'absolute',
-                                    top: -6,
-                                    right: -8,
-                                    background: transparent ? 'white' : 'var(--color-primary)',
-                                    color: transparent ? 'black' : 'white',
-                                    borderRadius: '50%',
-                                    width: '18px',
-                                    height: '18px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: '0.7rem',
-                                    fontWeight: 'bold',
-                                    transition: 'background 0.4s ease, color 0.4s ease'
-                                }}
+                                className={`absolute -top-1.5 -right-2 rounded-full w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold transition-colors duration-500
+                                ${transparent ? 'bg-brand-white text-brand-black' : 'bg-brand-black text-brand-white'}`}
                             >
                                 {cartItems.reduce((a, c) => a + c.qty, 0)}
                             </motion.span>
                         )}
                     </AnimatePresence>
-                </motion.button>
+                </button>
             </div>
-
-            <style>{`
-                @media (max-width: 768px) {
-                    .desktop-links { display: none !important; }
-                }
-                @media (min-width: 769px) {
-                    .mobile-menu-btn { display: none !important; }
-                }
-            `}</style>
         </motion.nav>
     );
 };

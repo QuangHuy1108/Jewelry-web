@@ -1,47 +1,50 @@
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { useRef } from 'react';
 
-const Button = ({ children, variant = 'primary', style, className, ...props }) => {
+const Button = ({ children, variant = 'primary', className = '', style, ...props }) => {
+    const ref = useRef(null);
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
 
-    const baseStyle = {
-        padding: '0.75rem 1.5rem',
-        fontSize: '1rem',
-        fontWeight: '500',
-        borderRadius: 'var(--radius-none)', // Luxury square edges
-        outline: 'none',
-        display: 'inline-block',
-        textAlign: 'center',
-        ...style
+    // Smooth out the motion for the magnetic effect
+    const mouseXSpring = useSpring(x, { stiffness: 150, damping: 15, mass: 0.1 });
+    const mouseYSpring = useSpring(y, { stiffness: 150, damping: 15, mass: 0.1 });
+
+    const handleMouseMove = (e) => {
+        if (!ref.current) return;
+        const rect = ref.current.getBoundingClientRect();
+
+        // Calculate distance from center of button
+        const hX = (e.clientX - rect.left - rect.width / 2) * 0.3;
+        const hY = (e.clientY - rect.top - rect.height / 2) * 0.3;
+
+        x.set(hX);
+        y.set(hY);
     };
 
-    const variants = {
-        primary: {
-            backgroundColor: 'var(--color-primary)',
-            color: 'var(--color-secondary)',
-            border: '1px solid var(--color-primary)',
-        },
-        secondary: {
-            backgroundColor: 'transparent',
-            color: 'var(--color-primary)',
-            border: '1px solid var(--color-primary)',
-        }
+    const handleMouseLeave = () => {
+        x.set(0);
+        y.set(0);
+    };
+
+    const baseClasses = "relative inline-flex items-center justify-center px-8 py-4 text-sm uppercase tracking-widest transition-colors duration-500 ease-out overflow-hidden font-medium";
+
+    const variantClasses = {
+        primary: "bg-brand-black text-brand-white hover:bg-brand-gold hover:text-brand-white",
+        secondary: "bg-transparent text-brand-black border border-brand-black hover:bg-brand-black hover:text-brand-white"
     };
 
     return (
         <motion.button
-            style={{ ...baseStyle, ...variants[variant] }}
-            className={className}
-            whileHover={{
-                scale: 1.02,
-                backgroundColor: variant === 'primary' ? 'var(--color-accent)' : 'var(--color-primary)',
-                color: variant === 'primary' ? 'var(--color-primary)' : 'var(--color-secondary)',
-                borderColor: variant === 'primary' ? 'var(--color-accent)' : 'var(--color-primary)',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
-            }}
-            whileTap={{ scale: 0.98 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
+            ref={ref}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            style={{ x: mouseXSpring, y: mouseYSpring, ...style }}
+            className={`${baseClasses} ${variantClasses[variant]} ${className}`}
+            whileTap={{ scale: 0.95 }}
             {...props}
         >
-            {children}
+            <span className="relative z-10">{children}</span>
         </motion.button>
     );
 };

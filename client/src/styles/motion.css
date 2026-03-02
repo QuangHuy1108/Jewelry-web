@@ -1,0 +1,10 @@
+/* Custom Keyframes and complex motion not suited for Tailwind */
+
+/* Text Mask Reveal (for non-GSAP, static reveals if needed) */
+.mask-reveal {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+}
+
+.mask-hidden {
+    clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%);
+}
