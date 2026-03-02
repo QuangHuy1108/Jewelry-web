@@ -44,7 +44,7 @@ const Home = () => {
                     width: '100%',
                     height: '110%',
                     y: yHero,
-                    background: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url("https://images.unsplash.com/photo-1599643478524-fb66f7f2b184?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80") center/cover no-repeat',
+                    background: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url("https://images.unsplash.com/photo-1515562141207-7a8ef25ce99c?auto=format&fit=crop&w=1920&q=80") center/cover no-repeat',
                     zIndex: -1
                 }} />
 
@@ -95,12 +95,13 @@ const Home = () => {
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.1 }}
                     variants={staggerContainer}
-                    style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--space-24)' }}
+                    style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 'var(--space-24)' }}
                 >
                     {[
-                        { name: 'Rings', image: 'https://images.unsplash.com/photo-1605100804763-247f6613d28e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-                        { name: 'Necklaces', image: 'https://images.unsplash.com/photo-1599643477874-c4a6a5bc3fbc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-                        { name: 'Earrings', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }
+                        { name: 'Rings', image: 'https://images.unsplash.com/photo-1605100804763-247f6613d28e?auto=format&fit=crop&w=800&ar=1:1&q=80' },
+                        { name: 'Necklaces', image: 'https://images.unsplash.com/photo-1599643477874-c4a6a5bc3fbc?auto=format&fit=crop&w=800&ar=1:1&q=80' },
+                        { name: 'Earrings', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&ar=1:1&q=80' },
+                        { name: 'Bracelets', image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=800&ar=1:1&q=80' }
                     ].map(cat => (
                         <motion.div variants={fadeInUp} key={cat.name}>
                             <Link to={`/shop?category=${cat.name}`} style={{ display: 'block', overflow: 'hidden', position: 'relative', height: '450px' }} className="product-card">
@@ -140,10 +141,10 @@ const Home = () => {
                     style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--space-32)' }}
                 >
                     {[
-                        { _id: '1', name: 'Solitaire Diamond Ring', price: 4999.00, category: 'Rings', image: 'https://images.unsplash.com/photo-1605100804763-247f6613d28e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', imageHover: 'https://images.unsplash.com/photo-1605100804763-247f6613d28e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80&sat=-100' },
-                        { _id: '2', name: 'Emerald Cut Necklace', price: 8500.00, category: 'Necklaces', image: 'https://images.unsplash.com/photo-1599643478524-fb66f7f2b184?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', imageHover: 'https://images.unsplash.com/photo-1599643477874-c4a6a5bc3fbc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-                        { _id: '3', name: 'Sapphire Drop Earrings', price: 3200.00, category: 'Earrings', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', imageHover: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80&sat=-100' },
-                        { _id: '4', name: 'Rose Gold Tennis Bracelet', price: 6100.00, category: 'Bracelets', image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', imageHover: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80&sat=-100' }
+                        { _id: '1', name: 'Solitaire Diamond Ring', price: 4999.00, category: 'Rings', image: 'https://images.unsplash.com/photo-1605100804763-247f6613d28e?auto=format&fit=crop&w=800&ar=4:5&q=80', imageHover: 'https://images.unsplash.com/photo-1596944924616-7b38e7cfac36?auto=format&fit=crop&w=800&ar=4:5&q=80' },
+                        { _id: '2', name: 'Emerald Cut Necklace', price: 8500.00, category: 'Necklaces', image: 'https://images.unsplash.com/photo-1599643478524-fb66f7f2b184?auto=format&fit=crop&w=800&ar=4:5&q=80', imageHover: 'https://images.unsplash.com/photo-1599643477874-c4a6a5bc3fbc?auto=format&fit=crop&w=800&ar=4:5&q=80' },
+                        { _id: '3', name: 'Sapphire Drop Earrings', price: 3200.00, category: 'Earrings', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&ar=4:5&q=80', imageHover: 'https://images.unsplash.com/photo-1629224316810-9d8805b95e76?auto=format&fit=crop&w=800&ar=4:5&q=80' },
+                        { _id: '4', name: 'Rose Gold Tennis Bracelet', price: 6100.00, category: 'Bracelets', image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=800&ar=4:5&q=80', imageHover: 'https://images.unsplash.com/photo-1573408301145-b98fc4eab913?auto=format&fit=crop&w=800&ar=4:5&q=80' }
                     ].map((p, index) => (
                         <motion.div variants={fadeInUp} key={p._id} className="product-card">
                             <div className="product-image-container" style={{ aspectRatio: '3/4', marginBottom: 'var(--space-16)' }}>
