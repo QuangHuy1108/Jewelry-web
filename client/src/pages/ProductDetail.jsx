@@ -32,7 +32,7 @@ const ProductDetail = () => {
                 setError(err.message);
                 // Luxury Mock Fallback
                 setProduct({
-                    _id: id,
+                    _id: id.length === 24 ? id : '60d21b4667d0d8992e610c89',
                     name: 'Solitaire Diamond Ring',
                     price: 4999.00,
                     description: 'A masterpiece of modern design, featuring a flawless brilliant-cut diamond set in polished 18k white gold. The delicate four-prong setting maximizes light return, ensuring unparalleled sparkle from every angle.',

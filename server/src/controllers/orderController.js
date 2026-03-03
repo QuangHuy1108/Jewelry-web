@@ -19,8 +19,18 @@ const addOrderItems = async (req, res) => {
             res.status(201).json(createdOrder);
         }
     } catch (error) {
+        console.error("ORDER CREATION ERROR:", error);
         res.status(500).json({ message: error.message });
     }
 };
 
-module.exports = { addOrderItems };
+const getMyOrders = async (req, res) => {
+    try {
+        const orders = await Order.find({ user: req.user._id });
+        res.json(orders);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { addOrderItems, getMyOrders };

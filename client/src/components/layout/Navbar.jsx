@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
     const { cartItems } = useCartStore();
-    const { userInfo, logout } = useUserStore();
+    const { user, logout } = useUserStore();
     const { openCart } = useUIStore();
     const location = useLocation();
 
@@ -80,12 +80,18 @@ const Navbar = () => {
                     <Heart strokeWidth={1.5} size={22} />
                 </button>
 
-                {userInfo ? (
-                    <div className="relative flex items-center group cursor-pointer">
+                {user ? (
+                    <div className="relative flex items-center group cursor-pointer py-2">
                         <User strokeWidth={1.5} size={22} />
-                        <span className="hidden md:block ml-2 text-sm uppercase tracking-widest">{userInfo.name.split(' ')[0]}</span>
-                        <div className="absolute top-full right-0 mt-4 bg-white text-brand-black shadow-lg py-2 px-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
-                            <button onClick={logout} className="text-sm uppercase tracking-widest whitespace-nowrap hover:text-brand-gold transition-colors">Logout</button>
+                        <span className="hidden md:block ml-2 text-sm uppercase tracking-widest">{user.name.split(' ')[0]}</span>
+                        <div className="absolute top-full right-0 pt-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
+                            <div className="bg-white text-brand-black shadow-lg py-4 px-6 flex flex-col gap-3 min-w-[150px]">
+                                <Link to="/profile" className="text-sm uppercase tracking-widest whitespace-nowrap hover:text-brand-gold transition-colors text-left">Profile</Link>
+                                {user.isAdmin && (
+                                    <Link to="/admin/productlist" className="text-sm uppercase tracking-widest whitespace-nowrap hover:text-brand-gold transition-colors text-left">Admin</Link>
+                                )}
+                                <button onClick={logout} className="text-sm uppercase tracking-widest whitespace-nowrap hover:text-brand-gold transition-colors text-left">Logout</button>
+                            </div>
                         </div>
                     </div>
                 ) : (

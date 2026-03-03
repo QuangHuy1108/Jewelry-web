@@ -16,10 +16,10 @@ const getCategories = () => [
 ];
 
 const getTrendingProducts = () => [
-    { _id: '1', name: 'Solitaire Diamond Ring', price: 4999.00, category: 'Rings', image: 'https://images.unsplash.com/photo-1605100804763-247f6613d28e?auto=format&fit=crop&w=800&ar=4:5&q=80', imageHover: 'https://images.unsplash.com/photo-1596944924616-7b38e7cfac36?auto=format&fit=crop&w=800&ar=4:5&q=80' },
-    { _id: '2', name: 'Emerald Cut Necklace', price: 8500.00, category: 'Necklaces', image: 'https://images.unsplash.com/photo-1599643478524-fb66f7f2b184?auto=format&fit=crop&w=800&ar=4:5&q=80', imageHover: 'https://images.unsplash.com/photo-1599643477874-c4a6a5bc3fbc?auto=format&fit=crop&w=800&ar=4:5&q=80' },
-    { _id: '3', name: 'Sapphire Drop Earrings', price: 3200.00, category: 'Earrings', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&ar=4:5&q=80', imageHover: 'https://images.unsplash.com/photo-1629224316810-9d8805b95e76?auto=format&fit=crop&w=800&ar=4:5&q=80' },
-    { _id: '4', name: 'Rose Gold Tennis Bracelet', price: 6100.00, category: 'Bracelets', image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=800&ar=4:5&q=80', imageHover: 'https://images.unsplash.com/photo-1573408301145-b98fc4eab913?auto=format&fit=crop&w=800&ar=4:5&q=80' }
+    { _id: '60d21b4667d0d8992e610c81', name: 'Solitaire Diamond Ring', price: 4999.00, category: 'Rings', image: 'https://images.unsplash.com/photo-1605100804763-247f6613d28e?auto=format&fit=crop&w=800&ar=4:5&q=80', imageHover: 'https://images.unsplash.com/photo-1596944924616-7b38e7cfac36?auto=format&fit=crop&w=800&ar=4:5&q=80' },
+    { _id: '60d21b4667d0d8992e610c82', name: 'Emerald Cut Necklace', price: 8500.00, category: 'Necklaces', image: 'https://images.unsplash.com/photo-1599643478524-fb66f7f2b184?auto=format&fit=crop&w=800&ar=4:5&q=80', imageHover: 'https://images.unsplash.com/photo-1599643477874-c4a6a5bc3fbc?auto=format&fit=crop&w=800&ar=4:5&q=80' },
+    { _id: '60d21b4667d0d8992e610c83', name: 'Sapphire Drop Earrings', price: 3200.00, category: 'Earrings', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&ar=4:5&q=80', imageHover: 'https://images.unsplash.com/photo-1629224316810-9d8805b95e76?auto=format&fit=crop&w=800&ar=4:5&q=80' },
+    { _id: '60d21b4667d0d8992e610c84', name: 'Rose Gold Tennis Bracelet', price: 6100.00, category: 'Bracelets', image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=800&ar=4:5&q=80', imageHover: 'https://images.unsplash.com/photo-1573408301145-b98fc4eab913?auto=format&fit=crop&w=800&ar=4:5&q=80' }
 ];
 
 const Home = () => {

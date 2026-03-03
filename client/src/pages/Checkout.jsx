@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useCartStore, useUserStore } from '../store';
 import { placeOrder } from '../services/orderService';
 import Button from '../components/ui/Button';
@@ -53,9 +53,8 @@ const Checkout = () => {
         }
     };
 
-    if (cartItems.length === 0) {
-        navigate('/cart');
-        return null; // Will redirect
+    if (cartItems.length === 0 && !loading) {
+        return <Navigate to="/cart" replace />;
     }
 
     const inputStyle = {
