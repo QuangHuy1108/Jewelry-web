@@ -1,10 +1,17 @@
 import { create } from 'zustand';
+import { getAllProducts } from '../services/productService';
 
 export const useProductStore = create((set) => ({
     products: [],
-    loading: false,
+    isLoading: false,
     error: null,
-    setProducts: (products) => set({ products }),
-    setLoading: (loading) => set({ loading }),
-    setError: (error) => set({ error })
+    fetchProducts: async () => {
+        set({ isLoading: true, error: null });
+        try {
+            const products = await getAllProducts();
+            set({ products, isLoading: false });
+        } catch (error) {
+            set({ error: error.message, isLoading: false });
+        }
+    }
 }));

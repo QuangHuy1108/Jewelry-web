@@ -4,7 +4,7 @@ import { X, Trash2, ArrowRight } from 'lucide-react';
 import Button from '../ui/Button';
 
 const CartDrawer = () => {
-    const { cartItems, removeFromCart, addToCart } = useCartStore();
+    const { cartItems, removeFromCart, updateQuantity } = useCartStore();
     const { isCartOpen, closeCart } = useUIStore();
 
     const subtotal = cartItems.reduce((acc, item) => acc + item.qty * item.price, 0);
@@ -69,9 +69,9 @@ const CartDrawer = () => {
 
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-16)', marginTop: 'var(--space-16)' }}>
                                             <div style={{ border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center' }}>
-                                                <button onClick={() => addToCart(item, Math.max(1, item.qty - 1))} style={{ padding: '4px 12px', fontSize: '1.2rem' }}>-</button>
+                                                <button onClick={() => updateQuantity(item.product, Math.max(1, item.qty - 1))} style={{ padding: '4px 12px', fontSize: '1.2rem' }}>-</button>
                                                 <span style={{ padding: '0 12px', fontSize: '0.9rem' }}>{item.qty}</span>
-                                                <button onClick={() => addToCart(item, item.qty + 1)} style={{ padding: '4px 12px', fontSize: '1.2rem' }}>+</button>
+                                                <button onClick={() => updateQuantity(item.product, item.qty + 1)} style={{ padding: '4px 12px', fontSize: '1.2rem' }}>+</button>
                                             </div>
                                         </div>
                                     </div>

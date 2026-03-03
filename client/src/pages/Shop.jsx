@@ -1,37 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useProductStore, useCartStore } from '../store';
-import { fetchProducts } from '../services/productService';
 import { Link } from 'react-router-dom';
 import { ShoppingBag, Heart } from 'lucide-react';
 import Button from '../components/ui/Button';
 
 const Shop = () => {
-    const { products, setProducts, loading, setLoading, setError } = useProductStore();
+    const { products, isLoading, fetchProducts } = useProductStore();
     const addToCart = useCartStore(state => state.addToCart);
     const [filter, setFilter] = useState('All');
     const [sort, setSort] = useState('newest');
 
     useEffect(() => {
-        const loadProducts = async () => {
-            try {
-                setLoading(true);
-                const data = await fetchProducts();
-                setProducts(data);
-            } catch (err) {
-                setError(err.message);
-                // Luxury Mock Data
-                setProducts([
-                    { _id: '1', name: 'Solitaire Diamond Ring', price: 4999.00, category: 'Rings', image: 'https://images.unsplash.com/photo-1605100804763-247f6613d28e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', imageHover: 'https://images.unsplash.com/photo-1605100804763-247f6613d28e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80&sat=-100' },
-                    { _id: '2', name: 'Emerald Cut Necklace', price: 8500.00, category: 'Necklaces', image: 'https://images.unsplash.com/photo-1599643478524-fb66f7f2b184?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', imageHover: 'https://images.unsplash.com/photo-1599643477874-c4a6a5bc3fbc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-                    { _id: '3', name: 'Sapphire Drop Earrings', price: 3200.00, category: 'Earrings', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', imageHover: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80&sat=-100' },
-                    { _id: '4', name: 'Rose Gold Tennis Bracelet', price: 6100.00, category: 'Bracelets', image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', imageHover: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80&sat=-100' },
-                ]);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadProducts();
-    }, [setProducts, setLoading, setError]);
+        fetchProducts();
+    }, [fetchProducts]);
 
     const displayedProducts = products
         .filter(p => filter === 'All' ? true : p.category === filter)
@@ -82,7 +63,7 @@ const Shop = () => {
                 </div>
 
                 {/* Product Grid */}
-                {loading ? <div style={{ height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div> : (
+                {isLoading ? <div style={{ height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div> : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--space-32)' }}>
                         {displayedProducts.map((p, index) => (
                             <div key={p._id} className={`product-card animate-slide-up stagger-${(index % 5) + 1}`}>
@@ -93,7 +74,7 @@ const Shop = () => {
                                     </Link>
 
                                     <div className="quick-actions">
-                                        <Button variant="secondary" style={{ padding: '0.5rem', flex: 1, backgroundColor: 'white', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '0.85rem', textTransform: 'uppercase' }} onClick={() => addToCart(p, 1)}>
+                                        <Button variant="secondary" style={{ padding: '0.5rem', flex: 1, backgroundColor: 'white', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '0.85rem', textTransform: 'uppercase' }} onClick={() => addToCart(p)}>
                                             <ShoppingBag size={16} /> Add
                                         </Button>
                                     </div>

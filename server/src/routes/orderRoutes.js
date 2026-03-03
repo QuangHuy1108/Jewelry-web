@@ -3,6 +3,6 @@ const router = express.Router();
 const { addOrderItems } = require('../controllers/orderController');
 const { protect } = require('../middleware/authMiddleware');
 
-router.post('/', protect, addOrderItems);
+router.post('/', addOrderItems);
 
 module.exports = router;

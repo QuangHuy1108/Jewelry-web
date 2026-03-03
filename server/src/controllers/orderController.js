@@ -10,7 +10,7 @@ const addOrderItems = async (req, res) => {
         } else {
             const order = new Order({
                 orderItems,
-                user: req.user._id,
+                user: req.user ? req.user._id : undefined,
                 shippingAddress,
                 totalPrice
             });

@@ -47,10 +47,10 @@ const ProductCard = ({ product, isEditorial = false }) => {
                 {/* Quick Add To Cart */}
                 <div className="absolute bottom-0 left-0 w-full translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-in-out z-10">
                     <button
-                        onClick={() => addToCart(product, 1)}
+                        onClick={() => addToCart(product)}
                         className="w-full bg-brand-black text-brand-white py-4 uppercase text-xs tracking-widest flex items-center justify-center gap-2 hover:bg-brand-dark-gray transition-colors"
                     >
-                        <ShoppingBag size={14} /> Quick Add
+                        <ShoppingBag size={14} /> Add to Cart
                     </button>
                 </div>
             </div>

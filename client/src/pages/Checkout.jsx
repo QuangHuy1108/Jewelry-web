@@ -12,7 +12,6 @@ const Checkout = () => {
     // Simplistic form state
     const [address, setAddress] = useState('');
     const [city, setCity] = useState('');
-    const [postalCode, setPostalCode] = useState('');
     const [country, setCountry] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -22,10 +21,7 @@ const Checkout = () => {
     const submitHandler = async (e) => {
         e.preventDefault();
 
-        if (!userInfo) {
-            navigate('/login?redirect=checkout');
-            return;
-        }
+        // Guest checkout allowed
 
         try {
             setLoading(true);
@@ -37,7 +33,7 @@ const Checkout = () => {
                     price: item.price,
                     product: item.product,
                 })),
-                shippingAddress: { address, city, postalCode, country },
+                shippingAddress: { address, city, country },
                 paymentMethod: 'PayPal',
                 itemsPrice: subtotal,
                 shippingPrice: 0,
@@ -47,15 +43,11 @@ const Checkout = () => {
 
             await placeOrder(orderData);
             clearCart();
-            // In a real app we'd redirect to an order confirmation page
-            alert('Order Placed Successfully! Mock flow complete.');
+            alert('Order Placed Successfully!');
             navigate('/');
         } catch (err) {
             setError(err.message);
-            // Even if it fails (e.g. mock server offline), clear cart and proceed for demo purposes.
-            clearCart();
-            alert('Order Processed (Mock Data Fallback). Returning home.');
-            navigate('/');
+            alert('Failed to place order. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -92,9 +84,8 @@ const Checkout = () => {
                             <div>
                                 <input type="text" placeholder="Address" value={address} onChange={(e) => setAddress(e.target.value)} required style={inputStyle} onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'} onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'} />
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-16)' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--space-16)' }}>
                                 <input type="text" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} required style={inputStyle} onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'} onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'} />
-                                <input type="text" placeholder="Postal Code" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} required style={inputStyle} onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'} onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'} />
                             </div>
                             <div>
                                 <input type="text" placeholder="Country" value={country} onChange={(e) => setCountry(e.target.value)} required style={inputStyle} onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'} onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'} />
