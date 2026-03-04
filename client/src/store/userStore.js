@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { login, register } from '../services/authService';
+import { useCartStore } from './cartStore';
 
 export const useUserStore = create((set) => ({
     user: JSON.parse(localStorage.getItem('userInfo')) || null,
@@ -42,5 +43,7 @@ export const useUserStore = create((set) => ({
         localStorage.removeItem('userInfo');
         localStorage.removeItem('token');
         set({ user: null, isAuthenticated: false, error: null });
+        // Clear cart to prevent items showing up for next user
+        useCartStore.getState().clearCart();
     }
 }));

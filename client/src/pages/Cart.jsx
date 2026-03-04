@@ -1,92 +1,142 @@
 import { Link } from 'react-router-dom';
-import { useCartStore } from '../store';
-import Button from '../components/ui/Button';
+import { useCartStore } from '../store/cartStore';
 import { Trash2, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Cart = () => {
-    const { cartItems, removeFromCart, addToCart, clearCart } = useCartStore();
+    const { cartItems, removeFromCart, updateQuantity } = useCartStore();
 
     if (cartItems.length === 0) {
         return (
-            <div className="animate-fade-in page-transition-enter-active" style={{ paddingTop: 'calc(var(--header-height) + var(--space-64))', paddingBottom: 'var(--space-96)', textAlign: 'center' }}>
-                <h1 style={{ fontSize: '2.5rem', marginBottom: 'var(--space-24)', fontWeight: 400 }}>Your Shopping Bag</h1>
-                <p style={{ color: 'var(--color-text-muted)', marginBottom: 'var(--space-32)' }}>Your bag is empty.</p>
-                <Link to="/shop">
-                    <Button variant="primary" style={{ padding: 'var(--space-16) var(--space-48)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Return to Shop</Button>
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+                className="pt-40 pb-32 px-6 flex flex-col items-center justify-center min-h-[60vh] bg-brand-white text-center"
+            >
+                <h1 className="font-serif text-3xl md:text-5xl text-brand-black mb-6 tracking-wide">Your Shopping Bag</h1>
+                <p className="text-brand-dark-gray uppercase tracking-widest text-xs font-light mb-12">Your bag is empty.</p>
+                <Link to="/shop" className="bg-brand-black text-brand-white px-12 py-5 uppercase text-xs tracking-[0.2em] font-light hover:bg-brand-gold transition-colors duration-500">
+                    Return to Boutique
                 </Link>
-            </div>
+            </motion.div>
         );
     }
 
     const subtotal = cartItems.reduce((acc, item) => acc + item.qty * item.price, 0);
 
     return (
-        <div className="animate-fade-in page-transition-enter-active" style={{ paddingTop: 'calc(var(--header-height) + var(--space-64))', paddingBottom: 'var(--space-96)' }}>
-            <div className="container" style={{ maxWidth: '1000px' }}>
-                <h1 style={{ fontSize: '2.5rem', marginBottom: 'var(--space-48)', fontWeight: 400, textAlign: 'center' }}>Your Shopping Bag</h1>
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="pt-32 pb-24 px-6 md:px-12 bg-brand-white min-h-screen"
+        >
+            <div className="max-w-6xl mx-auto">
+                <header className="mb-16 md:mb-24 text-center">
+                    <motion.h1
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        className="font-serif text-3xl md:text-5xl text-brand-black mb-6 tracking-wide"
+                    >
+                        Your Shopping Bag
+                    </motion.h1>
+                </header>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 'var(--space-64)', alignItems: 'start' }}>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
 
                     {/* Items List */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-32)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', paddingBottom: 'var(--space-16)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-muted)' }}>
+                    <div className="lg:col-span-8 flex flex-col gap-8">
+                        <div className="hidden md:flex justify-between border-b border-gray-200 pb-4 text-[10px] sm:text-xs uppercase tracking-[0.15em] font-light text-brand-dark-gray">
                             <span>Item</span>
-                            <span style={{ width: '150px', display: 'flex', justifyContent: 'space-between' }}>
+                            <span className="w-40 flex justify-between">
                                 <span>Qty</span>
                                 <span>Total</span>
                             </span>
                         </div>
-                        {cartItems.map((item) => (
-                            <div key={item.product} className="animate-slide-up" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 'var(--space-32)', borderBottom: '1px solid var(--color-border)' }}>
-                                <div style={{ display: 'flex', gap: 'var(--space-24)', alignItems: 'center', flex: 1 }}>
-                                    <Link to={`/product/${item.product}`}>
-                                        <img src={item.image} alt={item.name} style={{ width: '100px', height: '120px', objectFit: 'cover' }} />
+
+                        {cartItems.map((item, index) => (
+                            <motion.div
+                                key={item.product}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1, duration: 0.5 }}
+                                className="flex flex-col md:flex-row justify-between md:items-center py-6 border-b border-gray-100 gap-6 md:gap-0"
+                            >
+                                {/* Item Details */}
+                                <div className="flex gap-6 items-center flex-1">
+                                    <Link to={`/product/${item.product}`} className="w-24 shrink-0 aspect-[3/4] bg-brand-light-gray overflow-hidden">
+                                        <img src={item.image} alt={item.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
                                     </Link>
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <Link to={`/product/${item.product}`} style={{ fontSize: '1.1rem', marginBottom: 'var(--space-8)' }}>{item.name}</Link>
-                                        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>${item.price.toFixed(2)}</p>
-                                        <button onClick={() => removeFromCart(item.product)} style={{ alignSelf: 'flex-start', color: 'var(--color-text-light)', marginTop: 'var(--space-16)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                            <Trash2 size={14} /> Remove
+                                    <div className="flex flex-col">
+                                        <Link to={`/product/${item.product}`} className="font-serif text-lg md:text-xl text-brand-black mb-2 hover:text-brand-gold transition-colors">
+                                            {item.name}
+                                        </Link>
+                                        <p className="text-brand-dark-gray font-light text-sm tracking-wider mb-4">
+                                            ${Number(item.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </p>
+                                        <button
+                                            onClick={() => removeFromCart(item.product)}
+                                            className="self-start text-[10px] uppercase tracking-widest text-brand-dark-gray hover:text-black transition-colors flex items-center gap-1.5"
+                                        >
+                                            <Trash2 size={12} strokeWidth={1.5} /> Remove
                                         </button>
                                     </div>
                                 </div>
 
-                                <div style={{ width: '150px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div style={{ display: 'flex', border: '1px solid var(--color-border)', width: '80px' }}>
-                                        <button onClick={() => addToCart(item, Math.max(1, item.qty - 1))} style={{ flex: 1, padding: '4px 0' }}>-</button>
-                                        <span style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem' }}>{item.qty}</span>
-                                        <button onClick={() => addToCart(item, item.qty + 1)} style={{ flex: 1, padding: '4px 0' }}>+</button>
+                                {/* Controls & Row Total */}
+                                <div className="flex justify-between md:w-40 md:justify-between items-center w-full md:mt-0 mt-4">
+                                    <div className="flex items-center gap-4 text-brand-black text-sm">
+                                        <button onClick={() => updateQuantity(item.product, Math.max(1, item.qty - 1))} className="hover:text-brand-gold px-1 transition-colors">-</button>
+                                        <span className="w-4 text-center">{item.qty}</span>
+                                        <button onClick={() => updateQuantity(item.product, item.qty + 1)} className="hover:text-brand-gold px-1 transition-colors">+</button>
                                     </div>
-                                    <span style={{ fontWeight: 600 }}>${(item.qty * item.price).toFixed(2)}</span>
+                                    <span className="font-light tracking-wider text-brand-black md:text-right">
+                                        ${Number(item.qty * item.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
                                 </div>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
 
                     {/* Order Summary */}
-                    <div className="animate-slide-up" style={{ backgroundColor: 'var(--color-surface)', padding: 'var(--space-32)' }}>
-                        <h2 style={{ fontSize: '1.2rem', marginBottom: 'var(--space-24)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Order Summary</h2>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-16)', color: 'var(--color-text-muted)' }}>
-                            <span>Subtotal</span>
-                            <span>${subtotal.toFixed(2)}</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-24)', color: 'var(--color-text-muted)' }}>
-                            <span>Shipping</span>
-                            <span>Calculated at checkout</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 'var(--space-24)', borderTop: '1px solid var(--color-border)', fontSize: '1.2rem', fontWeight: 600, marginBottom: 'var(--space-32)' }}>
-                            <span>Total</span>
-                            <span>${subtotal.toFixed(2)}</span>
-                        </div>
-                        <Link to="/checkout" style={{ display: 'block' }}>
-                            <Button variant="primary" style={{ width: '100%', padding: 'var(--space-16)', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 'var(--space-8)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                                Proceed to Checkout <ArrowRight size={18} />
-                            </Button>
-                        </Link>
+                    <div className="lg:col-span-4 sticky top-32">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.8, delay: 0.3 }}
+                            className="bg-brand-surface p-8 border border-gray-100"
+                        >
+                            <h2 className="text-sm font-light uppercase tracking-widest text-brand-black mb-8 text-center pb-6 border-b border-gray-200">
+                                Order Summary
+                            </h2>
+
+                            <div className="flex justify-between mb-4 text-sm font-light text-brand-dark-gray">
+                                <span>Subtotal</span>
+                                <span>${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            </div>
+                            <div className="flex justify-between mb-8 text-sm font-light text-brand-dark-gray">
+                                <span>Shipping</span>
+                                <span>Complimentary</span>
+                            </div>
+
+                            <div className="flex justify-between pt-6 border-t border-gray-200 text-lg font-light tracking-wider text-brand-black mb-10">
+                                <span>Total</span>
+                                <span>${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            </div>
+
+                            <Link to="/checkout" className="block w-full">
+                                <button className="w-full bg-brand-black text-brand-white py-5 uppercase text-xs tracking-[0.2em] font-light hover:bg-brand-gold transition-colors duration-500 flex justify-center items-center gap-3">
+                                    Secure Checkout <ArrowRight size={16} strokeWidth={1} />
+                                </button>
+                            </Link>
+                        </motion.div>
                     </div>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 };
 

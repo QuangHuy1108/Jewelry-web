@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useUserStore } from '../store/userStore';
-import Button from '../components/ui/Button';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Login = () => {
     const [isRegisterMode, setIsRegisterMode] = useState(false);
@@ -39,18 +39,6 @@ const Login = () => {
         }
     };
 
-    const inputStyle = {
-        width: '100%',
-        padding: 'var(--space-16)',
-        border: 'none',
-        borderBottom: '1px solid var(--color-border)',
-        backgroundColor: 'transparent',
-        fontSize: '1rem',
-        outline: 'none',
-        transition: 'border-color 0.3s ease',
-        fontFamily: 'var(--font-family-main)'
-    };
-
     const toggleMode = () => {
         setIsRegisterMode(!isRegisterMode);
         setName('');
@@ -58,88 +46,127 @@ const Login = () => {
         setPassword('');
     };
 
+    const inputClasses = "w-full py-4 bg-transparent border-b border-gray-300 text-brand-black font-light text-sm focus:outline-none focus:border-brand-black transition-colors rounded-none placeholder:text-gray-400";
+
     return (
-        <div className="animate-fade-in page-transition-enter-active" style={{ height: '100vh', display: 'flex' }}>
-            <div style={{ flex: 1, display: 'none', '@media (min-width: 768px)': { display: 'block' }, background: 'url("https://images.unsplash.com/photo-1599643477874-c4a6a5bc3fbc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80") center/cover no-repeat' }}>
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="min-h-screen flex"
+        >
+            {/* Left side: Lifestyle Image */}
+            <div className="hidden md:block md:w-1/2 relative bg-brand-light-gray">
+                <img
+                    src="https://images.unsplash.com/photo-1599643477874-c4a6a5bc3fbc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+                    alt="Luxury Jewelry"
+                    className="absolute inset-0 w-full h-full object-cover"
+                />
             </div>
 
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 'var(--space-48)', backgroundColor: 'var(--color-surface)' }}>
-                <div style={{ maxWidth: '400px', width: '100%', margin: '0 auto' }} className="animate-slide-up">
+            {/* Right side: Login Form */}
+            <div className="w-full md:w-1/2 flex flex-col justify-center px-8 sm:px-16 lg:px-24 xl:px-32 bg-brand-surface pt-24 pb-12">
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={isRegisterMode ? 'register' : 'login'}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.5 }}
+                        className="max-w-md w-full mx-auto"
+                    >
+                        <header className="mb-12">
+                            <h1 className="font-serif text-3xl md:text-4xl text-brand-black mb-4">
+                                {isRegisterMode ? 'Client Registration' : 'Client Login'}
+                            </h1>
+                            <p className="font-light text-brand-dark-gray text-sm leading-relaxed">
+                                {isRegisterMode
+                                    ? 'Register to access exclusive collections and manage your jewelry orders.'
+                                    : 'Sign in to access your secure client portal and manage your orders.'}
+                            </p>
+                        </header>
 
-                    <h1 style={{ fontSize: '2.5rem', marginBottom: 'var(--space-16)', fontWeight: 400, fontFamily: 'var(--font-family-serif)' }}>
-                        {isRegisterMode ? 'Create Account' : 'Welcome Back'}
-                    </h1>
-                    <p style={{ color: 'var(--color-text-muted)', marginBottom: 'var(--space-48)', lineHeight: 1.6 }}>
-                        {isRegisterMode ? 'Please enter your details to create an exclusive client account.' : 'Please enter your details to access your exclusive client account.'}
-                    </p>
-
-                    {error && <div style={{ color: 'var(--color-error)', marginBottom: 'var(--space-24)', fontSize: '0.9rem' }}>{error}</div>}
-
-                    <form onSubmit={submitHandler} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-32)' }}>
-                        {isRegisterMode && (
-                            <div>
-                                <label style={{ display: 'block', marginBottom: 'var(--space-8)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-light)' }}>Full Name</label>
-                                <input
-                                    type="text"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    required
-                                    style={inputStyle}
-                                    onFocus={(e) => e.target.style.borderBottomColor = 'var(--color-primary)'}
-                                    onBlur={(e) => e.target.style.borderBottomColor = 'var(--color-border)'}
-                                />
+                        {error && (
+                            <div className="mb-8 p-4 bg-red-50 text-red-600 text-sm font-light text-center border border-red-100">
+                                {error}
                             </div>
                         )}
-                        <div>
-                            <label style={{ display: 'block', marginBottom: 'var(--space-8)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-light)' }}>Email Address</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                style={inputStyle}
-                                onFocus={(e) => e.target.style.borderBottomColor = 'var(--color-primary)'}
-                                onBlur={(e) => e.target.style.borderBottomColor = 'var(--color-border)'}
-                            />
-                        </div>
 
-                        <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 'var(--space-8)' }}>
-                                <label style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-light)' }}>Password</label>
-                                {!isRegisterMode && <Link to="#" style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', textDecoration: 'underline' }}>Forgot?</Link>}
+                        <form onSubmit={submitHandler} className="flex flex-col gap-8">
+                            {isRegisterMode && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    className="flex flex-col"
+                                >
+                                    <label className="text-xs uppercase tracking-[0.2em] font-light text-brand-dark-gray mb-2">Full Name</label>
+                                    <input
+                                        type="text"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        required
+                                        className={inputClasses}
+                                        placeholder="Enter your full name"
+                                    />
+                                </motion.div>
+                            )}
+
+                            <div className="flex flex-col">
+                                <label className="text-xs uppercase tracking-[0.2em] font-light text-brand-dark-gray mb-2">Email Address</label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                    className={inputClasses}
+                                    placeholder="Enter your email"
+                                />
                             </div>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                style={inputStyle}
-                                minLength={isRegisterMode ? 6 : undefined}
-                                onFocus={(e) => e.target.style.borderBottomColor = 'var(--color-primary)'}
-                                onBlur={(e) => e.target.style.borderBottomColor = 'var(--color-border)'}
-                            />
+
+                            <div className="flex flex-col">
+                                <div className="flex justify-between items-baseline mb-2">
+                                    <label className="text-xs uppercase tracking-[0.2em] font-light text-brand-dark-gray">Password</label>
+                                    {!isRegisterMode && (
+                                        <Link to="#" className="text-xs font-light text-brand-dark-gray underline decoration-1 underline-offset-4 hover:text-brand-black transition-colors">
+                                            Forgot?
+                                        </Link>
+                                    )}
+                                </div>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    minLength={isRegisterMode ? 6 : undefined}
+                                    className={inputClasses}
+                                    placeholder="Enter your password"
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="mt-4 w-full bg-brand-black text-brand-white py-4 uppercase text-xs tracking-[0.2em] font-light hover:bg-brand-gold transition-colors duration-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                            >
+                                {isLoading ? 'Processing...' : (isRegisterMode ? 'Create Account' : 'Sign In')}
+                            </button>
+                        </form>
+
+                        <div className="mt-12 text-center text-sm font-light text-brand-dark-gray">
+                            {isRegisterMode ? 'Already have an account?' : 'New to our boutique?'}
+                            {' '}
+                            <button
+                                onClick={toggleMode}
+                                className="text-brand-black underline decoration-1 underline-offset-4 hover:text-brand-gold transition-colors ml-2"
+                            >
+                                {isRegisterMode ? 'Sign In' : 'Register Here'}
+                            </button>
                         </div>
-
-                        <Button type="submit" variant="primary" disabled={isLoading} style={{ width: '100%', padding: 'var(--space-16)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 'var(--space-16)' }}>
-                            {isLoading ? 'Processing...' : (isRegisterMode ? 'Sign Up' : 'Sign In')}
-                        </Button>
-                    </form>
-
-                    <div style={{ marginTop: 'var(--space-48)', textAlign: 'center', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
-                        {isRegisterMode ? 'Already have an account?' : 'New to Luxe Gems?'}
-                        {' '}
-                        <button onClick={toggleMode} style={{ color: 'var(--color-primary)', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', padding: 0 }}>
-                            {isRegisterMode ? 'Sign In' : 'Create an Account'}
-                        </button>
-                    </div>
-                </div>
+                    </motion.div>
+                </AnimatePresence>
             </div>
-            <style>{`
-                @media (max-width: 900px) {
-                    .animate-fade-in > div:first-child { display: none !important; }
-                }
-            `}</style>
-        </div>
+        </motion.div>
     );
 };
 
