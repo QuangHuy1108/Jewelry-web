@@ -36,7 +36,7 @@ const Footer = () => {
                     <div>
                         <h4 className="text-xs uppercase tracking-[0.2em] font-light mb-8 text-white">Client Care</h4>
                         <ul className="flex flex-col gap-4">
-                            <li><Link to="#" className="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300">Contact Us</Link></li>
+                            <li><Link to="/contact" className="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300">Bespoke Concierge</Link></li>
                             <li><Link to="#" className="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300">Shipping & Returns</Link></li>
                             <li><Link to="#" className="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300">Care Guide</Link></li>
                             <li><Link to="#" className="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300">FAQ</Link></li>

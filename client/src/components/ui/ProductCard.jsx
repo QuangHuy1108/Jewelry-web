@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Heart } from 'lucide-react';
+import { ShoppingBag, Heart, Star } from 'lucide-react';
 import { useCartStore, useWishlistStore } from '../../store';
 
 const ProductCard = ({ product, isEditorial = false }) => {
@@ -69,7 +69,15 @@ const ProductCard = ({ product, isEditorial = false }) => {
                         {product.name}
                     </Link>
                 </h3>
-                <p className="text-brand-dark-gray text-xs tracking-wider">${Number(product.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <p className="text-brand-dark-gray text-xs tracking-wider mb-2">${Number(product.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                {product.numReviews > 0 && (
+                    <div className="flex justify-center items-center gap-1 text-brand-black">
+                        {[1, 2, 3, 4, 5].map(s => (
+                            <Star key={s} size={10} fill={s <= product.rating ? "currentColor" : "none"} stroke="currentColor" />
+                        ))}
+                        <span className="text-[10px] text-brand-dark-gray ml-1 tracking-widest leading-none">({product.numReviews})</span>
+                    </div>
+                )}
             </div>
         </motion.div>
     );

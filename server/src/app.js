@@ -21,6 +21,8 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
+app.use('/api/payments', require('./routes/paymentRoutes'));
+app.use('/api/contact', require('./routes/contactRoutes'));
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Jewelry Shop API is running' });

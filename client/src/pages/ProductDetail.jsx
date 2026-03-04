@@ -2,15 +2,19 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useCartStore } from '../store/cartStore';
 import { useProductStore } from '../store/productStore';
+import { useUserStore } from '../store/userStore';
+import { useWishlistStore } from '../store/wishlistStore';
 import { fetchProductById } from '../services/productService';
 import ProductCard from '../components/ui/ProductCard';
-import { Heart, Star, ShieldCheck, Truck, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Heart, Star, ShieldCheck, Truck, RotateCcw, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ProductDetail = () => {
     const { id } = useParams();
     const addToCart = useCartStore(state => state.addToCart);
-    const { products: allProducts, fetchProducts } = useProductStore();
+    const { products: allProducts, fetchProducts, createReview } = useProductStore();
+    const { user } = useUserStore();
+    const { toggleWishlist, isInWishlist } = useWishlistStore();
 
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -19,6 +23,12 @@ const ProductDetail = () => {
     const [activeImage, setActiveImage] = useState(0);
     const [openAccordion, setOpenAccordion] = useState('details');
     const [relatedProducts, setRelatedProducts] = useState([]);
+    const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
+
+    const [rating, setRating] = useState(0);
+    const [comment, setComment] = useState('');
+    const [reviewError, setReviewError] = useState('');
+    const [reviewLoading, setReviewLoading] = useState(false);
 
     useEffect(() => {
         if (allProducts.length === 0) {
@@ -76,6 +86,27 @@ const ProductDetail = () => {
         setOpenAccordion(openAccordion === section ? '' : section);
     };
 
+    const submitReviewHandler = async (e) => {
+        e.preventDefault();
+        setReviewError('');
+        if (rating === 0) {
+            setReviewError('Please select a rating.');
+            return;
+        }
+        setReviewLoading(true);
+        const res = await createReview(id, { rating, comment });
+        if (res.success) {
+            setRating(0);
+            setComment('');
+            // Optional: You could re-fetch the product to update reviews list immediately
+            const data = await fetchProductById(id);
+            setProduct(prev => ({ ...prev, reviews: data.reviews, numReviews: data.numReviews, rating: data.rating }));
+        } else {
+            setReviewError(res.error || 'Failed to submit review');
+        }
+        setReviewLoading(false);
+    };
+
     if (loading) return (
         <div className="h-screen flex items-center justify-center bg-brand-white">
             <span className="text-brand-dark-gray tracking-widest text-xs uppercase animate-pulse">Preparing viewing room...</span>
@@ -110,7 +141,7 @@ const ProductDetail = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
 
                     {/* Left Column: Image Viewer (Sticky) */}
-                    <div className="lg:col-span-7 flex flex-col md:flex-row gap-6 relative">
+                    <div className="lg:col-span-7 flex flex-col md:flex-row gap-6 relative items-start">
                         {/* Thumbnail Strip */}
                         <div className="flex md:flex-col gap-4 order-2 md:order-1 overflow-x-auto md:w-24 shrink-0 scrollbar-hide">
                             {product.images.map((img, i) => (
@@ -156,7 +187,7 @@ const ProductDetail = () => {
                         <div className="flex justify-between items-center mb-10 pb-6 border-b border-gray-200">
                             <div className="flex items-center gap-2 text-brand-dark-gray text-xs tracking-widest uppercase font-light">
                                 <div className="flex text-brand-black">
-                                    {[1, 2, 3, 4, 5].map(s => <Star key={s} size={14} fill="currentColor" stroke="none" />)}
+                                    {[1, 2, 3, 4, 5].map(s => <Star key={s} size={14} fill={s <= product.rating ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1} />)}
                                 </div>
                                 <span>({product.numReviews} Reviews)</span>
                             </div>
@@ -169,24 +200,35 @@ const ProductDetail = () => {
                         {/* Actions */}
                         <div className="mb-16">
                             {product.stock > 0 ? (
-                                <div className="flex flex-col gap-4">
-                                    <div className="flex justify-between items-center text-xs uppercase tracking-widest text-brand-dark-gray font-light px-2">
-                                        <span>Quantity:</span>
-                                        <div className="flex items-center gap-6">
-                                            <button onClick={() => setQty(Math.max(1, qty - 1))} className="hover:text-brand-black px-2 py-1 transition-colors">-</button>
-                                            <span className="text-brand-black">{qty}</span>
-                                            <button onClick={() => setQty(Math.min(product.stock, qty + 1))} className="hover:text-brand-black px-2 py-1 transition-colors">+</button>
+                                <div className="flex flex-col gap-5">
+                                    <div className="flex justify-between items-center flex-wrap gap-4 px-2">
+                                        <div className="flex items-center gap-6 text-xs uppercase tracking-widest text-brand-dark-gray font-light">
+                                            <span>Quantity:</span>
+                                            <div className="flex items-center gap-4">
+                                                <button onClick={() => setQty(Math.max(1, qty - 1))} className="hover:text-brand-black px-2 py-1 transition-colors">-</button>
+                                                <span className="text-brand-black">{qty}</span>
+                                                <button onClick={() => setQty(Math.min(product.stock, qty + 1))} className="hover:text-brand-black px-2 py-1 transition-colors">+</button>
+                                            </div>
                                         </div>
+                                        <button
+                                            onClick={() => setIsSizeGuideOpen(true)}
+                                            className="text-[10px] uppercase font-light tracking-widest text-brand-dark-gray border-b border-transparent hover:text-brand-black hover:border-brand-black transition-colors pb-0.5"
+                                        >
+                                            View Size Guide
+                                        </button>
                                     </div>
-                                    <div className="flex gap-4">
+                                    <div className="flex gap-4 mt-2">
                                         <button
                                             onClick={handleAddToCart}
                                             className="flex-1 bg-brand-black text-brand-white py-5 uppercase text-xs tracking-[0.2em] font-light hover:bg-brand-gold transition-colors duration-500"
                                         >
                                             Add to Shopping Bag
                                         </button>
-                                        <button className="w-16 flex items-center justify-center border border-brand-black text-brand-black hover:bg-brand-black hover:text-brand-white transition-colors duration-500">
-                                            <Heart size={20} strokeWidth={1} />
+                                        <button
+                                            onClick={() => toggleWishlist(product)}
+                                            className={`w-16 flex items-center justify-center border border-brand-black transition-colors duration-500 ${isInWishlist(product._id) ? 'bg-brand-black text-brand-white' : 'text-brand-black hover:bg-brand-black hover:text-brand-white'}`}
+                                        >
+                                            <Heart size={20} strokeWidth={isInWishlist(product._id) ? 2 : 1} className={isInWishlist(product._id) ? "fill-brand-white" : ""} />
                                         </button>
                                     </div>
                                 </div>
@@ -221,6 +263,33 @@ const ProductDetail = () => {
                                                 <ul className="space-y-2 list-inside list-disc pl-4 text-xs tracking-wider">
                                                     {product.details?.map((d, i) => <li key={i}>{d}</li>)}
                                                 </ul>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
+                            {/* Care & Maintenance */}
+                            <div className="border-b border-gray-200">
+                                <button
+                                    onClick={() => toggleAccordion('care')}
+                                    className="w-full py-6 flex justify-between items-center text-xs uppercase tracking-[0.15em] hover:text-brand-gold transition-colors"
+                                >
+                                    <span>Care & Maintenance</span>
+                                    {openAccordion === 'care' ? <ChevronUp size={16} strokeWidth={1} /> : <ChevronDown size={16} strokeWidth={1} />}
+                                </button>
+                                <AnimatePresence>
+                                    {openAccordion === 'care' && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="overflow-hidden"
+                                        >
+                                            <div className="pb-6 text-sm text-brand-dark-gray font-light flex flex-col gap-4 leading-relaxed">
+                                                <p>To preserve the brilliance of your piece, we recommend removing it before swimming, exercising, or applying cosmetics and perfumes.</p>
+                                                <p>Clean gently with a soft, lint-free cloth or a mild jewelry cleanser. Store individually in the provided Luxe Gems suede pouch or a lined jewelry box to prevent scratching and atmospheric exposure.</p>
+                                                <p>We offer complimentary professional cleaning, inspection, and polishing for all our creations once a year.</p>
                                             </div>
                                         </motion.div>
                                     )}
@@ -267,6 +336,88 @@ const ProductDetail = () => {
                     </div>
                 </div>
 
+                {/* Reviews Section */}
+                <div className="mt-32 pt-16 border-t border-gray-200">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
+                        <div className="lg:col-span-5">
+                            <h2 className="font-serif text-3xl text-brand-black mb-8">Client Experiences</h2>
+                            {product.reviews && product.reviews.length > 0 ? (
+                                <div className="flex flex-col gap-10 max-h-[600px] overflow-y-auto pr-4 scrollbar-thin">
+                                    {product.reviews.map((review) => (
+                                        <div key={review._id} className="pb-8 border-b border-gray-100 last:border-0">
+                                            <div className="flex items-center gap-2 mb-3 text-brand-black">
+                                                {[1, 2, 3, 4, 5].map(s => (
+                                                    <Star key={s} size={12} fill={s <= review.rating ? "currentColor" : "none"} stroke="currentColor" />
+                                                ))}
+                                            </div>
+                                            <p className="text-brand-dark-gray font-light text-sm mb-4 leading-relaxed">"{review.comment}"</p>
+                                            <div className="text-xs uppercase tracking-widest text-brand-dark-gray">
+                                                — {review.name}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-brand-dark-gray text-sm font-light">Be the first to share your experience with this piece.</p>
+                            )}
+                        </div>
+
+                        <div className="lg:col-span-7">
+                            <h2 className="text-xs uppercase tracking-[0.2em] font-light text-brand-dark-gray pb-4 border-b border-gray-200 mb-8">
+                                Write a Review
+                            </h2>
+                            {user ? (
+                                <form onSubmit={submitReviewHandler} className="flex flex-col gap-8 max-w-lg">
+                                    {reviewError && <div className="text-red-600 text-xs font-light">{reviewError}</div>}
+
+                                    <div className="flex flex-col gap-4">
+                                        <label className="text-xs uppercase tracking-widest text-brand-dark-gray font-light">Rating</label>
+                                        <div className="flex gap-2 text-brand-light-gray">
+                                            {[1, 2, 3, 4, 5].map((s) => (
+                                                <button
+                                                    key={s}
+                                                    type="button"
+                                                    onClick={() => setRating(s)}
+                                                    className={`hover:text-brand-black transition-colors ${s <= rating ? 'text-brand-black' : ''}`}
+                                                >
+                                                    <Star size={24} fill={s <= rating ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1} />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-4">
+                                        <label className="text-xs uppercase tracking-widest text-brand-dark-gray font-light">Your Experience</label>
+                                        <textarea
+                                            value={comment}
+                                            onChange={(e) => setComment(e.target.value)}
+                                            required
+                                            rows="4"
+                                            className="w-full py-4 bg-transparent border-b border-gray-300 text-brand-black font-light text-sm focus:outline-none focus:border-brand-black transition-colors resize-none placeholder:text-gray-400"
+                                            placeholder="Beautifully crafted..."
+                                        />
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={reviewLoading}
+                                        className="bg-brand-black text-brand-white py-4 px-8 w-fit uppercase text-xs tracking-[0.2em] font-light hover:bg-brand-gold transition-colors duration-500 disabled:bg-gray-300"
+                                    >
+                                        {reviewLoading ? 'Submitting...' : 'Submit Review'}
+                                    </button>
+                                </form>
+                            ) : (
+                                <div className="p-8 bg-brand-surface border border-gray-100 text-center">
+                                    <p className="text-brand-dark-gray font-light text-sm mb-4">Please log in to share your experience.</p>
+                                    <Link to="/login" className="text-xs uppercase tracking-[0.2em] text-brand-black border-b border-brand-black pb-1 hover:text-brand-gold hover:border-brand-gold transition-colors">
+                                        Sign In
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
                 {/* You May Also Like Section */}
                 {relatedProducts.length > 0 && (
                     <div className="mt-32 pt-20 border-t border-gray-200">
@@ -289,6 +440,82 @@ const ProductDetail = () => {
                     </div>
                 )}
             </div>
+
+            {/* Size Guide Modal */}
+            <AnimatePresence>
+                {isSizeGuideOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-brand-white/80 backdrop-blur-sm p-4 md:p-0"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="bg-brand-surface border border-gray-200 w-full max-w-2xl relative shadow-2xl"
+                        >
+                            <button
+                                onClick={() => setIsSizeGuideOpen(false)}
+                                className="absolute right-6 top-6 text-brand-dark-gray hover:text-brand-black transition-colors"
+                            >
+                                <X strokeWidth={1} size={24} />
+                            </button>
+
+                            <div className="p-10 md:p-14">
+                                <div className="text-center mb-10">
+                                    <h3 className="font-serif text-2xl text-brand-black mb-2">Size Guide</h3>
+                                    <p className="text-xs uppercase tracking-widest text-brand-dark-gray font-light">Find your perfect fit</p>
+                                </div>
+
+                                <div className="mb-8">
+                                    <h4 className="text-sm font-light text-brand-black mb-4 border-b border-gray-200 pb-2">Rings</h4>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left font-light text-sm text-brand-dark-gray">
+                                            <thead>
+                                                <tr className="text-xs uppercase tracking-widest text-brand-black">
+                                                    <th className="pb-3 pr-4 font-normal">US</th>
+                                                    <th className="pb-3 pr-4 font-normal">UK / AU</th>
+                                                    <th className="pb-3 pr-4 font-normal">EU</th>
+                                                    <th className="pb-3 font-normal">Diameter (mm)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr className="border-t border-gray-100"><td className="py-3">5</td><td>J 1/2</td><td>49</td><td>15.7</td></tr>
+                                                <tr className="border-t border-gray-100"><td className="py-3">6</td><td>L 1/2</td><td>52</td><td>16.5</td></tr>
+                                                <tr className="border-t border-gray-100"><td className="py-3">7</td><td>N 1/2</td><td>54</td><td>17.3</td></tr>
+                                                <tr className="border-t border-gray-100"><td className="py-3">8</td><td>P 1/2</td><td>57</td><td>18.1</td></tr>
+                                                <tr className="border-t border-gray-100"><td className="py-3">9</td><td>R 1/2</td><td>60</td><td>18.9</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h4 className="text-sm font-light text-brand-black mb-4 border-b border-gray-200 pb-2">Bracelets</h4>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left font-light text-sm text-brand-dark-gray">
+                                            <thead>
+                                                <tr className="text-xs uppercase tracking-widest text-brand-black">
+                                                    <th className="pb-3 pr-4 font-normal">Size</th>
+                                                    <th className="pb-3 pr-4 font-normal">Inches</th>
+                                                    <th className="pb-3 font-normal">Centimeters</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr className="border-t border-gray-100"><td className="py-3">Small</td><td>6.0" - 6.5"</td><td>15 - 16.5</td></tr>
+                                                <tr className="border-t border-gray-100"><td className="py-3">Medium</td><td>6.5" - 7.0"</td><td>16.5 - 18</td></tr>
+                                                <tr className="border-t border-gray-100"><td className="py-3">Large</td><td>7.0" - 7.5"</td><td>18 - 19</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 };

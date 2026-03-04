@@ -1,56 +1,158 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useCartStore } from '../store/cartStore';
 import { useUserStore } from '../store/userStore';
 import { placeOrder } from '../services/orderService';
 import { motion } from 'framer-motion';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import api from '../services/api';
 
-const Checkout = () => {
+// Loading from environment variable
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+
+const CheckoutForm = ({ subtotal, orderItems, shippingAddress }) => {
+    const stripe = useStripe();
+    const elements = useElements();
     const navigate = useNavigate();
-    const { cartItems, clearCart } = useCartStore();
-    const { userInfo } = useUserStore();
+    const { clearCart } = useCartStore();
 
-    const [address, setAddress] = useState('');
-    const [city, setCity] = useState('');
-    const [country, setCountry] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-
-    const subtotal = cartItems.reduce((acc, item) => acc + item.qty * item.price, 0);
 
     const submitHandler = async (e) => {
         e.preventDefault();
 
+        if (!stripe || !elements) {
+            return; // Stripe.js hasn't yet loaded.
+        }
+
+        if (!shippingAddress.address || !shippingAddress.city || !shippingAddress.country) {
+            setError('Please fill in all shipping information.');
+            return;
+        }
+
         try {
             setLoading(true);
-            const orderData = {
-                orderItems: cartItems.map(item => ({
-                    name: item.name,
-                    qty: item.qty,
-                    image: item.image,
-                    price: item.price,
-                    product: item.product,
-                })),
-                shippingAddress: { address, city, country },
-                paymentMethod: 'PayPal',
-                itemsPrice: subtotal,
-                shippingPrice: 0,
-                taxPrice: 0,
-                totalPrice: subtotal,
-            };
+            setError(null);
 
-            await placeOrder(orderData);
-            clearCart();
-            navigate('/order-success');
+            // 1. Create Payment Intent on the backend
+            const { data } = await api.post('/payments/create-payment-intent', {
+                amount: subtotal
+            });
+            const clientSecret = data.clientSecret;
+
+            // 2. Confirm card payment with Stripe
+            const paymentResult = await stripe.confirmCardPayment(clientSecret, {
+                payment_method: {
+                    card: elements.getElement(CardElement),
+                    billing_details: {
+                        address: {
+                            city: shippingAddress.city,
+                            country: 'US', // Hardcoded for simplicity, usually mapped from form
+                            line1: shippingAddress.address,
+                        }
+                    }
+                }
+            });
+
+            if (paymentResult.error) {
+                throw new Error(paymentResult.error.message);
+            }
+
+            // 3. Payment successful, save order to DB
+            if (paymentResult.paymentIntent.status === 'succeeded') {
+                const orderData = {
+                    orderItems,
+                    shippingAddress,
+                    paymentMethod: 'Stripe',
+                    itemsPrice: subtotal,
+                    shippingPrice: 0,
+                    taxPrice: 0,
+                    totalPrice: subtotal,
+                };
+
+                await placeOrder(orderData);
+                clearCart();
+                navigate('/order-success');
+            }
         } catch (err) {
             setError(err.message);
-            alert('Failed to place order. Please try again.');
         } finally {
             setLoading(false);
         }
     };
 
-    if (cartItems.length === 0 && !loading) {
+    // Minimalist custom styling for Stripe Element to match our aesthetic
+    const cardElementOptions = {
+        style: {
+            base: {
+                fontSize: '14px',
+                color: '#1a1a1a',
+                fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+                fontWeight: '300',
+                letterSpacing: '0.05em',
+                '::placeholder': {
+                    color: '#9ca3af',
+                },
+                padding: '16px 0',
+            },
+            invalid: {
+                color: '#dc2626',
+                iconColor: '#dc2626',
+            },
+        },
+        hidePostalCode: true,
+    };
+
+    return (
+        <form onSubmit={submitHandler} className="w-full flex justify-end">
+            <div className="w-full">
+                {error && (
+                    <div className="mb-6 p-4 bg-red-50 text-red-600 text-sm font-light text-center border border-red-100">
+                        {error}
+                    </div>
+                )}
+
+                <h2 className="text-xs uppercase tracking-[0.2em] font-light text-brand-dark-gray pb-4 border-b border-gray-200 mb-8">
+                    Secure Payment
+                </h2>
+
+                <div className="mb-10 py-2 border-b border-gray-300">
+                    <CardElement options={cardElementOptions} />
+                </div>
+
+                <button
+                    type="submit"
+                    disabled={!stripe || loading}
+                    className="w-full bg-brand-black text-brand-white py-5 uppercase text-xs tracking-[0.2em] font-light hover:bg-brand-gold transition-colors duration-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                    {loading ? 'Processing Securely...' : `Pay & Place Order • $${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+                </button>
+            </div>
+        </form>
+    );
+};
+
+
+const Checkout = () => {
+    const { cartItems } = useCartStore();
+
+    const [address, setAddress] = useState('');
+    const [city, setCity] = useState('');
+    const [country, setCountry] = useState('');
+
+    const subtotal = cartItems.reduce((acc, item) => acc + item.qty * item.price, 0);
+
+    const orderItems = cartItems.map(item => ({
+        name: item.name,
+        qty: item.qty,
+        image: item.image,
+        price: item.price,
+        product: item.product,
+    }));
+
+    if (cartItems.length === 0) {
         return <Navigate to="/cart" replace />;
     }
 
@@ -76,14 +178,7 @@ const Checkout = () => {
                     </motion.h1>
                 </header>
 
-                {error && (
-                    <div className="mb-8 p-4 bg-red-50 text-red-600 text-sm font-light text-center border border-red-100 max-w-2xl mx-auto">
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={submitHandler} className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
-
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
                     {/* Left Column: Forms */}
                     <div className="lg:col-span-7 flex flex-col gap-12">
                         <motion.div
@@ -106,23 +201,9 @@ const Checkout = () => {
                                 </div>
                             </div>
                         </motion.div>
-
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.3 }}
-                            className="flex flex-col gap-8"
-                        >
-                            <h2 className="text-xs uppercase tracking-[0.2em] font-light text-brand-dark-gray pb-4 border-b border-gray-200">
-                                Payment Method
-                            </h2>
-                            <div className="py-4 text-brand-dark-gray font-light text-sm">
-                                Simulated Secure Payment (PayPal Demo)
-                            </div>
-                        </motion.div>
                     </div>
 
-                    {/* Right Column: Summary */}
+                    {/* Right Column: Summary & Payment */}
                     <div className="lg:col-span-5 w-full">
                         <motion.div
                             initial={{ opacity: 0 }}
@@ -170,17 +251,18 @@ const Checkout = () => {
                                 <span>${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
 
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full bg-brand-black text-brand-white py-5 uppercase text-xs tracking-[0.2em] font-light hover:bg-brand-gold transition-colors duration-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                            >
-                                {loading ? 'Processing Securely...' : `Place Order • $${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-                            </button>
+                            {/* Stripe Elements Wrap the Payment Form */}
+                            <Elements stripe={stripePromise}>
+                                <CheckoutForm
+                                    subtotal={subtotal}
+                                    orderItems={orderItems}
+                                    shippingAddress={{ address, city, country }}
+                                />
+                            </Elements>
                         </motion.div>
                     </div>
 
-                </form>
+                </div>
             </div>
         </motion.div>
     );

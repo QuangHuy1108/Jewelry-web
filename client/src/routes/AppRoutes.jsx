@@ -9,6 +9,7 @@ import Profile from '../pages/Profile';
 import Wishlist from '../pages/Wishlist';
 import BrandStory from '../pages/BrandStory';
 import OrderSuccess from '../pages/OrderSuccess';
+import Contact from '../pages/Contact';
 import AdminRoute from '../components/routing/AdminRoute';
 import AdminDashboard from '../pages/AdminDashboard';
 import AdminProductList from '../pages/AdminProductList';
@@ -27,6 +28,7 @@ const AppRoutes = () => {
             <Route path="/profile" element={<Profile />} />
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/story" element={<BrandStory />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/order-success" element={<OrderSuccess />} />
 
             <Route path="/admin" element={

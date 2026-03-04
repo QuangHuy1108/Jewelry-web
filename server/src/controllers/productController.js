@@ -41,7 +41,7 @@ const createProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
     try {
-        const { name, price, description, image, category, stock } = req.body;
+        const { name, price, description, image, category, stock, material, gemstone } = req.body;
         const product = await Product.findById(req.params.id);
 
         if (product) {
@@ -50,6 +50,8 @@ const updateProduct = async (req, res) => {
             product.description = description || product.description;
             product.image = image || product.image;
             product.category = category || product.category;
+            product.material = material || product.material;
+            product.gemstone = gemstone || product.gemstone;
             product.stock = stock !== undefined ? stock : product.stock;
 
             const updatedProduct = await product.save();
@@ -77,4 +79,39 @@ const deleteProduct = async (req, res) => {
     }
 };
 
-module.exports = { getProducts, getProductById, createProduct, updateProduct, deleteProduct };
+const createProductReview = async (req, res) => {
+    try {
+        const { rating, comment } = req.body;
+        const product = await Product.findById(req.params.id);
+
+        if (product) {
+            const alreadyReviewed = product.reviews.find(
+                (r) => r.user.toString() === req.user._id.toString()
+            );
+
+            if (alreadyReviewed) {
+                return res.status(400).json({ message: 'Product already reviewed' });
+            }
+
+            const review = {
+                name: req.user.name,
+                rating: Number(rating),
+                comment,
+                user: req.user._id,
+            };
+
+            product.reviews.push(review);
+            product.numReviews = product.reviews.length;
+            product.rating = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
+
+            await product.save();
+            res.status(201).json({ message: 'Review added' });
+        } else {
+            res.status(404).json({ message: 'Product not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { getProducts, getProductById, createProduct, updateProduct, deleteProduct, createProductReview };

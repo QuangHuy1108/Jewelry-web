@@ -32,6 +32,12 @@ const Navbar = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // Close overlays when location changes (e.g., hitting the back button)
+    useEffect(() => {
+        setIsSearchOpen(false);
+        setIsMobileMenuOpen(false);
+    }, [location.pathname, location.search]);
+
     const navAnimation = {
         hidden: { y: -100, opacity: 0 },
         visible: {
@@ -42,9 +48,31 @@ const Navbar = () => {
     };
 
     const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
+    // Manage search overlay history state for back button handling
+    useEffect(() => {
+        const handlePopState = () => {
+            if (isSearchOpen) {
+                setIsSearchOpen(false);
+                setSearchQuery('');
+            }
+        };
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [isSearchOpen]);
+
+    const openSearch = () => {
+        window.history.pushState({ searchModal: true }, '');
+        setIsSearchOpen(true);
+    };
+
     const closeSearch = () => {
-        setIsSearchOpen(false);
-        setSearchQuery('');
+        if (window.history.state?.searchModal) {
+            window.history.back();
+        } else {
+            setIsSearchOpen(false);
+            setSearchQuery('');
+        }
     };
 
     const handleSearch = (e) => {
@@ -57,6 +85,8 @@ const Navbar = () => {
 
     const handleTrendingSearch = (term) => {
         setSearchQuery(term);
+        closeSearch();
+        navigate(`/shop?search=${encodeURIComponent(term)}`);
     };
 
     const trendingSearches = ['Diamond Rings', 'Gold Chains', 'Pearl Earrings', 'Engagement Rings', 'Tennis Bracelets'];
@@ -81,7 +111,7 @@ const Navbar = () => {
                         <Menu strokeWidth={1} size={24} />
                         <span className="hidden md:block text-xs uppercase tracking-[0.2em] font-light">Menu</span>
                     </button>
-                    <button onClick={() => setIsSearchOpen(true)} className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+                    <button onClick={openSearch} className="flex items-center gap-2 hover:opacity-70 transition-opacity">
                         <Search strokeWidth={1} size={22} />
                         <span className="hidden md:block text-xs uppercase tracking-[0.2em] font-light">Search</span>
                     </button>
@@ -99,10 +129,10 @@ const Navbar = () => {
 
                 {/* Right - Call, Wishlist, Account, Cart */}
                 <div className="flex-1 flex items-center justify-end gap-5 md:gap-8">
-                    <button className="hidden lg:flex items-center gap-2 hover:opacity-70 transition-opacity">
+                    <Link to="/contact" className="hidden lg:flex items-center gap-2 hover:opacity-70 transition-opacity">
                         <Phone strokeWidth={1} size={20} />
-                        <span className="text-xs uppercase tracking-[0.2em] font-light">Call Us</span>
-                    </button>
+                        <span className="text-xs uppercase tracking-[0.2em] font-light">Concierge</span>
+                    </Link>
 
                     <Link to="/wishlist" className="hover:opacity-70 transition-opacity hidden sm:block">
                         <Heart strokeWidth={1} size={22} />
@@ -278,7 +308,7 @@ const Navbar = () => {
                             <div className="flex justify-center gap-8 pb-4">
                                 <button className="hover:opacity-50 transition-opacity flex items-center justify-center w-10 h-10 rounded-full border border-gray-200"><Search strokeWidth={1} size={18} /></button>
                                 <button className="hover:opacity-50 transition-opacity flex items-center justify-center w-10 h-10 rounded-full border border-gray-200"><Heart strokeWidth={1} size={18} /></button>
-                                <button className="hover:opacity-50 transition-opacity flex items-center justify-center w-10 h-10 rounded-full border border-gray-200"><Phone strokeWidth={1} size={18} /></button>
+                                <Link to="/contact" onClick={closeMobileMenu} className="hover:opacity-50 transition-opacity flex items-center justify-center w-10 h-10 rounded-full border border-gray-200"><Phone strokeWidth={1} size={18} /></Link>
                             </div>
                         </motion.div>
                     </motion.div>
