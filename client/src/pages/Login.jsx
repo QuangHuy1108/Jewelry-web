@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useUserStore } from '../store/userStore';
 import { motion, AnimatePresence } from 'framer-motion';
+import Button from '../components/ui/Button';
 
 const Login = () => {
     const [isRegisterMode, setIsRegisterMode] = useState(false);
@@ -35,7 +36,6 @@ const Login = () => {
             }
         } catch (err) {
             // Error is handled by the store
-            console.error('Authentication error:', err);
         }
     };
 
@@ -144,13 +144,13 @@ const Login = () => {
                                 />
                             </div>
 
-                            <button
+                            <Button
                                 type="submit"
-                                disabled={isLoading}
-                                className="mt-4 w-full bg-brand-black text-brand-white py-4 uppercase text-xs tracking-[0.2em] font-light hover:bg-brand-gold transition-colors duration-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                isLoading={isLoading}
+                                className="w-full mt-4"
                             >
-                                {isLoading ? 'Processing...' : (isRegisterMode ? 'Create Account' : 'Sign In')}
-                            </button>
+                                {isRegisterMode ? 'Create Account' : 'Sign In'}
+                            </Button>
                         </form>
 
                         <div className="mt-12 text-center text-sm font-light text-brand-dark-gray">

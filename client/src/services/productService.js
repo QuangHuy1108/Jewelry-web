@@ -1,7 +1,8 @@
 import api from './api';
 
-export const getAllProducts = async () => {
-    const { data } = await api.get('/products');
+export const getAllProducts = async (queryString = '') => {
+    const url = queryString ? `/products?${queryString}` : '/products';
+    const { data } = await api.get(url);
     return data;
 };
 
@@ -22,5 +23,15 @@ export const updateProduct = async (id, productData) => {
 
 export const deleteProduct = async (id) => {
     const { data } = await api.delete(`/products/${id}`);
+    return data;
+};
+
+export const createReview = async (id, reviewData) => {
+    const { data } = await api.post(`/products/${id}/reviews`, reviewData);
+    return data;
+};
+
+export const checkProductPurchase = async (id) => {
+    const { data } = await api.get(`/products/${id}/check-purchase`);
     return data;
 };

@@ -6,13 +6,14 @@ export const useProductStore = create((set) => ({
     products: [],
     isLoading: false,
     error: null,
-    fetchProducts: async () => {
+    fetchProducts: async (queryString = '') => {
         set({ isLoading: true, error: null });
         try {
-            const products = await getAllProducts();
+            const products = await getAllProducts(queryString);
             set({ products, isLoading: false });
         } catch (error) {
-            set({ error: error.message, isLoading: false });
+            const errorMessage = error.response?.data?.message || error.message;
+            set({ error: errorMessage, isLoading: false });
         }
     },
     createReview: async (productId, review) => {

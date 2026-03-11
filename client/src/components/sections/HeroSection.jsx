@@ -102,18 +102,17 @@ const HeroSection = () => {
                     </div>
 
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 1, delay: 1.2 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1, delay: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
                         className="mt-8"
                     >
                         <Link
                             to="/shop"
-                            className="relative inline-block text-sm uppercase tracking-[0.2em] group pb-2"
+                            className="relative inline-block text-[10px] md:text-sm uppercase tracking-[0.2em] group py-4 px-8 border border-brand-white/30 hover:bg-brand-white hover:text-brand-black transition-all duration-500"
                         >
                             Discover the Collection
-                            {/* Animated underline */}
-                            <span className="absolute left-0 bottom-0 w-full h-[1px] bg-brand-white origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-in-out" />
                         </Link>
                     </motion.div>
                 </div>

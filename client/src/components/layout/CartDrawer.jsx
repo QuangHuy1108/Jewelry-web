@@ -62,6 +62,11 @@ const CartDrawer = () => {
                                                         <Trash2 size={14} strokeWidth={1.5} />
                                                     </button>
                                                 </div>
+                                                {item.size && (
+                                                    <p className="text-brand-dark-gray text-xs uppercase tracking-widest font-light mb-1">
+                                                        Size: {item.size}
+                                                    </p>
+                                                )}
                                                 <p className="text-brand-dark-gray font-light tracking-wider text-sm mb-auto">
                                                     ${Number(item.price).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                                 </p>
@@ -81,25 +86,21 @@ const CartDrawer = () => {
                         </div>
 
                         {cartItems.length > 0 && (
-                            <div className="p-6 md:p-8 bg-brand-surface border-t border-gray-100">
-                                <div className="flex justify-between mb-4 font-light tracking-wider text-brand-black">
-                                    <span>Subtotal</span>
-                                    <span>${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <div className="p-6 md:p-8 border-t border-gray-100">
+                                <div className="flex justify-between items-center mb-6">
+                                    <p className="text-brand-black font-serif text-xl tracking-wide">Subtotal</p>
+                                    <p className="text-brand-black font-serif text-xl tracking-wide">${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                                 </div>
-                                <p className="text-[10px] uppercase tracking-widest font-light text-brand-dark-gray mb-6">
-                                    Shipping, taxes, and discounts calculated at checkout.
-                                </p>
-                                <Link to="/checkout" onClick={closeCart} className="block w-full">
-                                    <button className="w-full bg-brand-black text-brand-white py-4 uppercase text-xs tracking-[0.2em] font-light hover:bg-brand-gold transition-colors duration-500 flex justify-center items-center gap-3">
-                                        Checkout <ArrowRight size={16} strokeWidth={1} />
-                                    </button>
+                                <Link to="/checkout" onClick={closeCart} className="bg-brand-black text-brand-white px-8 py-4 uppercase text-[10px] tracking-[0.2em] font-light hover:bg-brand-gold transition-colors duration-500 w-full flex justify-between items-center">
+                                    Checkout
+                                    <ArrowRight size={16} strokeWidth={1.5} />
                                 </Link>
                             </div>
                         )}
                     </motion.div>
                 </>
             )}
-        </AnimatePresence>
+        </AnimatePresence >
     );
 };
 

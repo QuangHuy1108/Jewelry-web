@@ -9,9 +9,14 @@ const AdminProductEdit = () => {
     const [name, setName] = useState('');
     const [price, setPrice] = useState(0);
     const [image, setImage] = useState('');
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState('');
     const [category, setCategory] = useState('');
     const [description, setDescription] = useState('');
     const [stock, setStock] = useState(0);
+    const [material, setMaterial] = useState('');
+    const [gemstone, setGemstone] = useState('');
+    const [sizes, setSizes] = useState('');
 
     const [isLoading, setIsLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
@@ -24,11 +29,14 @@ const AdminProductEdit = () => {
                 setName(product.name);
                 setPrice(product.price);
                 setImage(product.image);
+                setImagePreview(product.image);
                 setCategory(product.category);
                 setDescription(product.description);
                 setStock(product.stock || 0);
+                setMaterial(product.material || '');
+                setGemstone(product.gemstone || '');
+                setSizes(product.sizes ? product.sizes.join(', ') : '');
             } catch (err) {
-                console.error(err);
                 setError('Failed to load product details');
             } finally {
                 setIsLoading(false);
@@ -40,15 +48,42 @@ const AdminProductEdit = () => {
         }
     }, [id]);
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
     const submitHandler = async (e) => {
         e.preventDefault();
         setIsUpdating(true);
         setError('');
         try {
-            await updateProduct(id, { name, price, image, category, description, stock });
+            // Convert comma-separated sizes string into an array of trimmed strings
+            const sizesArray = sizes ? sizes.split(',').map(s => s.trim()).filter(s => s !== '') : [];
+
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('price', price);
+            formData.append('category', category);
+            formData.append('description', description);
+            formData.append('stock', stock);
+            if (material) formData.append('material', material);
+            if (gemstone) formData.append('gemstone', gemstone);
+            formData.append('sizes', JSON.stringify(sizesArray));
+
+            if (imageFile) {
+                formData.append('image', imageFile);
+            } else if (image) {
+                // Keep the old image link if no new file is uploaded
+                formData.append('image', image);
+            }
+
+            await updateProduct(id, formData);
             navigate('/admin/productlist');
         } catch (err) {
-            console.error(err);
             setError('Failed to update product');
             setIsUpdating(false);
         }
@@ -96,6 +131,46 @@ const AdminProductEdit = () => {
                         </div>
                     </section>
 
+                    {/* Jewelry Specifications Section */}
+                    <section>
+                        <h2 className="text-xs uppercase tracking-[0.2em] font-light text-brand-dark-gray mb-6 pb-2 border-b border-gray-100">Jewelry Specifications</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                            <div>
+                                <label className="block text-xs uppercase tracking-[0.2em] font-light text-brand-dark-gray mb-2">
+                                    Material <span className="text-[9px] lowercase text-gray-400">(e.g., 18k Solid Gold)</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={material}
+                                    onChange={(e) => setMaterial(e.target.value)}
+                                    className="w-full bg-transparent border-b border-gray-300 py-3 text-sm font-light text-brand-black focus:outline-none focus:border-brand-black transition-colors placeholder:text-gray-400"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs uppercase tracking-[0.2em] font-light text-brand-dark-gray mb-2">
+                                    Gemstone <span className="text-[9px] lowercase text-gray-400">(e.g., Diamond, Sapphire)</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={gemstone}
+                                    onChange={(e) => setGemstone(e.target.value)}
+                                    className="w-full bg-transparent border-b border-gray-300 py-3 text-sm font-light text-brand-black focus:outline-none focus:border-brand-black transition-colors placeholder:text-gray-400"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs uppercase tracking-[0.2em] font-light text-brand-dark-gray mb-2">
+                                Sizes <span className="text-[9px] lowercase text-gray-400">(Comma separated, e.g., 5, 6, 7, 8)</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={sizes}
+                                onChange={(e) => setSizes(e.target.value)}
+                                className="w-full bg-transparent border-b border-gray-300 py-3 text-sm font-light text-brand-black focus:outline-none focus:border-brand-black transition-colors placeholder:text-gray-400"
+                            />
+                        </div>
+                    </section>
+
                     {/* Pricing & Inventory Section */}
                     <section>
                         <h2 className="text-xs uppercase tracking-[0.2em] font-light text-brand-dark-gray mb-6 pb-2 border-b border-gray-100">Pricing & Inventory</h2>
@@ -131,17 +206,16 @@ const AdminProductEdit = () => {
                         <h2 className="text-xs uppercase tracking-[0.2em] font-light text-brand-dark-gray mb-6 pb-2 border-b border-gray-100">Media & Details</h2>
                         <div className="space-y-8">
                             <div>
-                                <label className="block text-xs uppercase tracking-[0.2em] font-light text-brand-dark-gray mb-2">Image URL</label>
+                                <label className="block text-xs uppercase tracking-[0.2em] font-light text-brand-dark-gray mb-2">Image</label>
                                 <input
-                                    type="text"
-                                    value={image}
-                                    onChange={(e) => setImage(e.target.value)}
-                                    className="w-full bg-transparent border-b border-gray-300 py-3 text-sm font-light text-brand-black focus:outline-none focus:border-brand-black transition-colors placeholder:text-gray-400"
-                                    required
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    className="w-full bg-transparent border-b border-gray-300 py-3 text-sm font-light text-brand-black focus:outline-none focus:border-brand-black transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-xs file:font-light file:bg-gray-100 file:text-brand-black hover:file:bg-gray-200"
                                 />
-                                {image && (
+                                {imagePreview && (
                                     <div className="mt-6 w-24 h-32 bg-brand-light-gray border border-gray-100 overflow-hidden">
-                                        <img src={image} alt="Preview" className="w-full h-full object-cover" />
+                                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                                     </div>
                                 )}
                             </div>

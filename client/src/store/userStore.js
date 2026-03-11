@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { login, register } from '../services/authService';
 import { useCartStore } from './cartStore';
+import toast from 'react-hot-toast';
 
 export const useUserStore = create((set) => ({
     user: JSON.parse(localStorage.getItem('userInfo')) || null,
@@ -17,10 +18,12 @@ export const useUserStore = create((set) => ({
                 localStorage.setItem('userInfo', JSON.stringify(data));
             }
             set({ user: data, isAuthenticated: true, isLoading: false, error: null });
+            toast.success(`Welcome back, ${data.name}!`);
             return data;
         } catch (error) {
             const errorMessage = error.response?.data?.message || 'Login failed';
             set({ error: errorMessage, isLoading: false });
+            toast.error(errorMessage);
             throw new Error(errorMessage);
         }
     },
@@ -31,10 +34,12 @@ export const useUserStore = create((set) => ({
             const data = await register(userData);
             // Registration successful! We just return the data now instead of logging in.
             set({ isLoading: false, error: null });
+            toast.success('Registration successful. Please log in.');
             return data;
         } catch (error) {
             const errorMessage = error.response?.data?.message || 'Registration failed';
             set({ error: errorMessage, isLoading: false });
+            toast.error(errorMessage);
             throw new Error(errorMessage);
         }
     },

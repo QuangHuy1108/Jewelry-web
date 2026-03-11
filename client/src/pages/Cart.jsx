@@ -74,6 +74,11 @@ const Cart = () => {
                                         <Link to={`/product/${item.product}`} className="font-serif text-lg md:text-xl text-brand-black mb-2 hover:text-brand-gold transition-colors">
                                             {item.name}
                                         </Link>
+                                        {item.size && (
+                                            <p className="text-brand-dark-gray text-xs uppercase tracking-widest font-light mb-2">
+                                                Size: {item.size}
+                                            </p>
+                                        )}
                                         <p className="text-brand-dark-gray font-light text-sm tracking-wider mb-4">
                                             ${Number(item.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </p>

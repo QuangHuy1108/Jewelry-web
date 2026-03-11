@@ -3,24 +3,36 @@ const sendEmail = require('../utils/sendEmail');
 
 const addOrderItems = async (req, res) => {
     try {
-        const { orderItems, shippingAddress, totalPrice } = req.body;
+        const { orderItems, shippingAddress, totalPrice, paymentIntentId } = req.body;
 
-        if (orderItems && orderItems.length === 0) {
-            res.status(400).json({ message: 'No order items' });
-            return;
-        } else {
-            const order = new Order({
-                orderItems,
-                user: req.user ? req.user._id : undefined,
-                shippingAddress,
-                totalPrice
-            });
+        if (!orderItems || orderItems.length === 0) {
+            return res.status(400).json({ message: 'No order items provided' });
+        }
 
-            const createdOrder = await order.save();
+        if (!shippingAddress || !shippingAddress.address || !shippingAddress.city || !shippingAddress.postalCode || !shippingAddress.country) {
+            return res.status(400).json({ message: 'Incomplete shipping address' });
+        }
 
-            // Send Confirmation Email if the user was logged in and has an email
-            if (req.user && req.user.email) {
-                const htmlTemplate = `
+        if (!paymentIntentId) {
+            return res.status(400).json({ message: 'Payment authorization required' });
+        }
+
+        const order = new Order({
+            orderItems,
+            user: req.user ? req.user._id : undefined,
+            shippingAddress,
+            totalPrice,
+            paymentStatus: 'paid',
+            isPaid: true,
+            paidAt: Date.now(),
+            paymentIntentId
+        });
+
+        const createdOrder = await order.save();
+
+        // Send Confirmation Email if the user was logged in and has an email
+        if (req.user && req.user.email) {
+            const htmlTemplate = `
                     <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a1a1a;">
                         <div style="text-align: center; margin-bottom: 40px;">
                             <h1 style="font-family: 'Georgia', serif; letter-spacing: 4px; font-weight: normal; margin: 0; font-size: 24px;">LUXE GEMS</h1>
@@ -59,15 +71,14 @@ const addOrderItems = async (req, res) => {
                     </div>
                 `;
 
-                await sendEmail({
-                    email: req.user.email,
-                    subject: 'Luxe Gems - Your Order Confirmation',
-                    html: htmlTemplate
-                });
-            }
-
-            res.status(201).json(createdOrder);
+            await sendEmail({
+                email: req.user.email,
+                subject: 'Luxe Gems - Your Order Confirmation',
+                html: htmlTemplate
+            });
         }
+
+        res.status(201).json(createdOrder);
     } catch (error) {
         console.error("ORDER CREATION ERROR:", error);
         res.status(500).json({ message: error.message });

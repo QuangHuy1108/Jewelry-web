@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import toast from 'react-hot-toast';
 
 export const useWishlistStore = create(
     persist(
@@ -14,8 +15,10 @@ export const useWishlistStore = create(
                     set({
                         wishlistItems: currentItems.filter((item) => item._id !== product._id),
                     });
+                    toast.success('Removed from wishlist');
                 } else {
                     set({ wishlistItems: [...currentItems, product] });
+                    toast.success('Added to wishlist');
                 }
             },
 

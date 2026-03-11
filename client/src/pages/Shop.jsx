@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useProductStore } from '../store/productStore';
 import ProductCard from '../components/ui/ProductCard';
@@ -38,6 +38,7 @@ const Shop = () => {
     }, [searchQuery]);
 
     useEffect(() => {
+        // Fetch all products on mount. Filtering is now done entirely on the frontend.
         fetchProducts();
     }, [fetchProducts]);
 
@@ -66,41 +67,35 @@ const Shop = () => {
         setList(prev => prev.includes(item) ? prev.filter(i => i !== item) : [...prev, item]);
     };
 
-    const displayedProducts = products
-        .filter(p => activeCategory === 'All' ? true : p.category.toLowerCase() === activeCategory.toLowerCase())
-        .filter(p => {
-            if (!searchQuery) return true;
-            const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.trim() !== '');
-            return searchTerms.every(term => {
-                const singularTerm = term.endsWith('s') && !term.endsWith('ss') ? term.slice(0, -1) : term;
-                return p.name.toLowerCase().includes(singularTerm) ||
-                    p.description?.toLowerCase().includes(singularTerm) ||
-                    p.category.toLowerCase().includes(singularTerm);
+    const displayedProducts = useMemo(() => {
+        return products
+            .filter(p => activeCategory === 'All' ? true : p?.category?.toLowerCase() === activeCategory.toLowerCase())
+            .filter(p => {
+                if (selectedMaterials.length === 0) return true;
+                if (!p?.material) return false;
+                return selectedMaterials.some(m => m.toLowerCase() === p.material.trim().toLowerCase());
+            })
+            .filter(p => {
+                if (selectedGemstones.length === 0) return true;
+                if (!p?.gemstone) return false;
+                return selectedGemstones.some(g => g.toLowerCase() === p.gemstone.trim().toLowerCase());
+            })
+            .filter(p => {
+                if (!searchQuery) return true;
+                const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.trim() !== '');
+                return searchTerms.some(term => {
+                    const singularTerm = term.endsWith('s') && !term.endsWith('ss') ? term.slice(0, -1) : term;
+                    return p?.name?.toLowerCase().includes(singularTerm) ||
+                        p?.description?.toLowerCase().includes(singularTerm) ||
+                        p?.category?.toLowerCase().includes(singularTerm);
+                });
+            })
+            .sort((a, b) => {
+                if (sort === 'price-asc') return a.price - b.price;
+                if (sort === 'price-desc') return b.price - a.price;
+                return new Date(b.createdAt) - new Date(a.createdAt);
             });
-        })
-        .filter(p => {
-            if (selectedMaterials.length === 0) return true;
-            return selectedMaterials.some(m => {
-                const mat = m.toLowerCase();
-                return (p.material && p.material.toLowerCase().includes(mat)) ||
-                    p.name.toLowerCase().includes(mat) ||
-                    (p.description && p.description.toLowerCase().includes(mat));
-            });
-        })
-        .filter(p => {
-            if (selectedGemstones.length === 0) return true;
-            return selectedGemstones.some(g => {
-                const gem = g.toLowerCase();
-                return (p.gemstone && p.gemstone.toLowerCase().includes(gem)) ||
-                    p.name.toLowerCase().includes(gem) ||
-                    (p.description && p.description.toLowerCase().includes(gem));
-            });
-        })
-        .sort((a, b) => {
-            if (sort === 'price-asc') return a.price - b.price;
-            if (sort === 'price-desc') return b.price - a.price;
-            return 0;
-        });
+    }, [products, activeCategory, searchQuery, sort, selectedMaterials, selectedGemstones]);
 
     return (
         <motion.div

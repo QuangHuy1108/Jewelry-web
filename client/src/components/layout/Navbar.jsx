@@ -66,8 +66,8 @@ const Navbar = () => {
         setIsSearchOpen(true);
     };
 
-    const closeSearch = () => {
-        if (window.history.state?.searchModal) {
+    const closeSearch = (isSubmit = false) => {
+        if (!isSubmit && window.history.state?.searchModal) {
             window.history.back();
         } else {
             setIsSearchOpen(false);
@@ -78,14 +78,14 @@ const Navbar = () => {
     const handleSearch = (e) => {
         e.preventDefault();
         if (searchQuery.trim()) {
-            closeSearch();
+            closeSearch(true);
             navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
         }
     };
 
     const handleTrendingSearch = (term) => {
         setSearchQuery(term);
-        closeSearch();
+        closeSearch(true);
         navigate(`/shop?search=${encodeURIComponent(term)}`);
     };
 

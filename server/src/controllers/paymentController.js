@@ -1,10 +1,23 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const Product = require('../models/Product');
 
 const createPaymentIntent = async (req, res) => {
     try {
-        const { amount } = req.body;
+        const { cartItems } = req.body;
 
-        if (!amount || amount <= 0) {
+        if (!cartItems || cartItems.length === 0) {
+            return res.status(400).json({ message: 'No items in cart' });
+        }
+
+        let amount = 0;
+        for (const item of cartItems) {
+            const product = await Product.findById(item.product);
+            if (product) {
+                amount += Number(product.price) * Number(item.qty);
+            }
+        }
+
+        if (amount <= 0) {
             return res.status(400).json({ message: 'Invalid amount' });
         }
 

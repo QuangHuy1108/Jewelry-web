@@ -22,7 +22,6 @@ const AdminProductList = () => {
                 const newProduct = await createProduct();
                 navigate(`/admin/product/${newProduct._id}/edit`);
             } catch (error) {
-                console.error('Error creating product:', error);
                 alert('Failed to create product');
             } finally {
                 setIsCreating(false);
@@ -36,7 +35,6 @@ const AdminProductList = () => {
                 await deleteProduct(id);
                 fetchProducts(); // Refresh the list
             } catch (error) {
-                console.error('Error deleting product:', error);
                 alert('Failed to delete product');
             }
         }

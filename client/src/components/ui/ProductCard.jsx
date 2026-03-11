@@ -14,10 +14,10 @@ const ProductCard = ({ product, isEditorial = false }) => {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.8, ease: [0.83, 0, 0.17, 1] }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="group block"
         >
             <div className={`relative overflow-hidden ${aspectRatioClass} bg-brand-light-gray mb-4`}>
@@ -52,15 +52,29 @@ const ProductCard = ({ product, isEditorial = false }) => {
                     <Heart size={16} strokeWidth={isSaved ? 2 : 1.5} className={isSaved ? "fill-brand-gold" : ""} />
                 </button>
 
-                {/* Quick Add To Cart */}
+                {/* Quick Add To Cart / View Details */}
                 <div className="absolute bottom-0 left-0 w-full translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-in-out z-10">
-                    <button
-                        onClick={() => addToCart(product)}
+                    <Link
+                        to={`/product/${product._id}`}
                         className="w-full bg-brand-black/95 backdrop-blur-md text-brand-white py-3 uppercase text-[10px] sm:text-xs tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-brand-gold transition-colors font-light"
                     >
-                        <ShoppingBag size={14} /> Add to Cart
-                    </button>
+                        View Details
+                    </Link>
                 </div>
+            </div>
+
+            {/* Material & Gemstone Tags */}
+            <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+                {product.material && (
+                    <span className="bg-white/90 backdrop-blur-sm text-brand-black px-3 py-1 text-[10px] uppercase font-light tracking-widest leading-none">
+                        {product.material}
+                    </span>
+                )}
+                {product.gemstone && (
+                    <span className="bg-brand-black/90 backdrop-blur-sm text-brand-white px-3 py-1 text-[10px] uppercase font-light tracking-widest leading-none">
+                        {product.gemstone}
+                    </span>
+                )}
             </div>
 
             <div className="text-center px-4 mt-6">

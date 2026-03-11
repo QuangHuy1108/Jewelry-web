@@ -15,7 +15,7 @@ const AdminOrderList = () => {
                 const data = await getAllOrders();
                 setOrders(data);
             } catch (error) {
-                console.error('Error fetching orders:', error);
+                // Silently handle or add toast
             } finally {
                 setIsLoading(false);
             }

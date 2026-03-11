@@ -8,8 +8,13 @@ const generateToken = (id) => {
 
 const registerUser = async (req, res) => {
     try {
-        const { name, password } = req.body;
-        const email = req.body.email.toLowerCase().trim();
+        const { name, password, email: rawEmail } = req.body;
+
+        if (!name || !rawEmail || !password) {
+            return res.status(400).json({ message: 'Please provide all required fields' });
+        }
+
+        const email = rawEmail.toLowerCase().trim();
         const userExists = await User.findOne({ email });
 
         if (userExists) {
@@ -42,8 +47,13 @@ const registerUser = async (req, res) => {
 
 const authUser = async (req, res) => {
     try {
-        const { password } = req.body;
-        const email = req.body.email.toLowerCase().trim();
+        const { password, email: rawEmail } = req.body;
+
+        if (!rawEmail || !password) {
+            return res.status(400).json({ message: 'Please provide an email and password' });
+        }
+
+        const email = rawEmail.toLowerCase().trim();
         const user = await User.findOne({ email });
 
         if (user && (await bcrypt.compare(password, user.password))) {

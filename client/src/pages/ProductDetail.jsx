@@ -4,10 +4,12 @@ import { useCartStore } from '../store/cartStore';
 import { useProductStore } from '../store/productStore';
 import { useUserStore } from '../store/userStore';
 import { useWishlistStore } from '../store/wishlistStore';
-import { fetchProductById } from '../services/productService';
+import { fetchProductById, checkProductPurchase } from '../services/productService';
 import ProductCard from '../components/ui/ProductCard';
 import { Heart, Star, ShieldCheck, Truck, RotateCcw, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
+import Button from '../components/ui/Button';
 
 const ProductDetail = () => {
     const { id } = useParams();
@@ -25,10 +27,31 @@ const ProductDetail = () => {
     const [relatedProducts, setRelatedProducts] = useState([]);
     const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
 
+    // New states for size selection
+    const [selectedSize, setSelectedSize] = useState('');
+    const [sizeError, setSizeError] = useState('');
+
     const [rating, setRating] = useState(0);
     const [comment, setComment] = useState('');
     const [reviewError, setReviewError] = useState('');
     const [reviewLoading, setReviewLoading] = useState(false);
+    const [hasPurchased, setHasPurchased] = useState(false);
+
+    useEffect(() => {
+        const verifyPurchase = async () => {
+            if (user && id) {
+                try {
+                    const data = await checkProductPurchase(id);
+                    setHasPurchased(data.hasPurchased);
+                } catch (error) {
+                    setHasPurchased(false);
+                }
+            } else {
+                setHasPurchased(false);
+            }
+        };
+        verifyPurchase();
+    }, [user, id]);
 
     useEffect(() => {
         if (allProducts.length === 0) {
@@ -50,9 +73,14 @@ const ProductDetail = () => {
                 setProduct({
                     ...data,
                     images: galleryImages,
-                    material: '18k Solid Gold or Platinum',
+                    material: data.material || '18k Solid Gold or Platinum', // Use actual material if it exists
+                    gemstone: data.gemstone || '',
                     details: ['Handcrafted Polish', 'Color: D-F (Colorless)', 'Clarity: VS+', 'Ethically Sourced Conflict-Free']
                 });
+
+                // Reset size when product changes
+                setSelectedSize('');
+                setSizeError('');
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -79,7 +107,13 @@ const ProductDetail = () => {
     }, [product, allProducts]);
 
     const handleAddToCart = () => {
-        addToCart(product, qty);
+        if (!selectedSize) {
+            setSizeError('Please select a size to continue.');
+            return;
+        }
+
+        // Pass the size to the cart store along with the product and qty
+        addToCart({ ...product, size: selectedSize }, qty);
     };
 
     const toggleAccordion = (section) => {
@@ -90,7 +124,7 @@ const ProductDetail = () => {
         e.preventDefault();
         setReviewError('');
         if (rating === 0) {
-            setReviewError('Please select a rating.');
+            toast.error('Please select a rating.');
             return;
         }
         setReviewLoading(true);
@@ -98,11 +132,13 @@ const ProductDetail = () => {
         if (res.success) {
             setRating(0);
             setComment('');
+            toast.success('Review submitted successfully!');
             // Optional: You could re-fetch the product to update reviews list immediately
             const data = await fetchProductById(id);
             setProduct(prev => ({ ...prev, reviews: data.reviews, numReviews: data.numReviews, rating: data.rating }));
         } else {
             setReviewError(res.error || 'Failed to submit review');
+            toast.error(res.error || 'Failed to submit review');
         }
         setReviewLoading(false);
     };
@@ -138,17 +174,17 @@ const ProductDetail = () => {
                     <span className="text-brand-black">{product.category}</span>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
 
                     {/* Left Column: Image Viewer (Sticky) */}
-                    <div className="lg:col-span-7 flex flex-col md:flex-row gap-6 relative items-start">
+                    <div className="lg:col-span-7 lg:sticky lg:top-32 lg:h-[calc(100vh-10rem)] flex flex-col md:flex-row gap-6 items-start">
                         {/* Thumbnail Strip */}
-                        <div className="flex md:flex-col gap-4 order-2 md:order-1 overflow-x-auto md:w-24 shrink-0 scrollbar-hide">
+                        <div className="flex md:flex-col gap-4 order-2 md:order-1 overflow-x-auto w-full md:w-24 shrink-0 scrollbar-hide lg:h-full lg:overflow-y-auto pb-4 md:pb-0">
                             {product.images.map((img, i) => (
                                 <button
                                     key={i}
                                     onClick={() => setActiveImage(i)}
-                                    className={`relative aspect-[3/4] w-20 md:w-full overflow-hidden transition-all duration-300 ${activeImage === i ? 'ring-1 ring-brand-black ring-offset-2' : 'opacity-70 hover:opacity-100'}`}
+                                    className={`relative aspect-[3/4] w-20 md:w-full shrink-0 overflow-hidden transition-all duration-300 ${activeImage === i ? 'ring-1 ring-brand-black ring-offset-2' : 'opacity-70 hover:opacity-100'}`}
                                 >
                                     <img src={img} alt={`${product.name} detail ${i + 1}`} className="absolute w-full h-full object-cover" />
                                 </button>
@@ -156,7 +192,7 @@ const ProductDetail = () => {
                         </div>
 
                         {/* Main Image */}
-                        <div className="relative aspect-[3/4] w-full order-1 md:order-2 bg-brand-light-gray lg:sticky top-32">
+                        <div className="relative w-full order-1 md:order-2 bg-brand-light-gray h-[60vh] lg:h-full">
                             <motion.img
                                 key={activeImage}
                                 initial={{ opacity: 0 }}
@@ -164,7 +200,7 @@ const ProductDetail = () => {
                                 transition={{ duration: 0.5 }}
                                 src={product.images[activeImage]}
                                 alt={product.name}
-                                className="absolute inset-0 w-full h-full object-cover"
+                                className="absolute inset-0 w-full h-full object-contain md:object-cover"
                             />
                         </div>
                     </div>
@@ -193,6 +229,22 @@ const ProductDetail = () => {
                             </div>
                         </div>
 
+                        {/* Material & Gemstone Badges */}
+                        {(product.material || product.gemstone) && (
+                            <div className="flex flex-wrap gap-3 mb-8">
+                                {product.material && (
+                                    <span className="inline-block border border-gray-200 px-4 py-2 text-[10px] uppercase tracking-widest text-brand-black font-light truncate">
+                                        Material: {product.material}
+                                    </span>
+                                )}
+                                {product.gemstone && (
+                                    <span className="inline-block border border-gray-200 px-4 py-2 text-[10px] uppercase tracking-widest text-brand-black font-light truncate">
+                                        Gemstone: {product.gemstone}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+
                         <p className="text-brand-dark-gray font-light leading-relaxed mb-10 whitespace-pre-line text-sm md:text-base">
                             {product.description}
                         </p>
@@ -201,7 +253,43 @@ const ProductDetail = () => {
                         <div className="mb-16">
                             {product.stock > 0 ? (
                                 <div className="flex flex-col gap-5">
-                                    <div className="flex justify-between items-center flex-wrap gap-4 px-2">
+                                    {/* Size Selector */}
+                                    <div className="flex flex-col gap-3">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-xs uppercase tracking-widest text-brand-black font-light">Select Size</span>
+                                            <button
+                                                onClick={() => setIsSizeGuideOpen(true)}
+                                                className="text-[10px] uppercase font-light tracking-widest text-brand-dark-gray border-b border-transparent hover:text-brand-black hover:border-brand-black transition-colors pb-0.5"
+                                            >
+                                                Size Guide
+                                            </button>
+                                        </div>
+                                        <div className="flex flex-wrap gap-3">
+                                            {/* We mock size options here, ideally these come from the backend. 
+                                                Assuming Rings have numerical sizes, Bracelets/Necklaces have lengths, etc.
+                                                Using a generic fallback list for demonstration if product.sizes doesn't exist */}
+                                            {(product.sizes || ['5', '6', '7', '8', '9']).map((s) => (
+                                                <button
+                                                    key={s}
+                                                    onClick={() => {
+                                                        setSelectedSize(s);
+                                                        setSizeError('');
+                                                    }}
+                                                    className={`w-12 h-12 flex items-center justify-center border transition-all duration-300 ${selectedSize === s
+                                                        ? 'border-brand-black bg-brand-black text-brand-white'
+                                                        : 'border-gray-200 text-brand-dark-gray hover:border-brand-black hover:text-brand-black'
+                                                        } text-xs font-light`}
+                                                >
+                                                    {s}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        {sizeError && (
+                                            <p className="text-red-500 text-xs font-light mt-1 animate-pulse">{sizeError}</p>
+                                        )}
+                                    </div>
+
+                                    <div className="flex justify-between items-center flex-wrap gap-4 px-2 mt-4">
                                         <div className="flex items-center gap-6 text-xs uppercase tracking-widest text-brand-dark-gray font-light">
                                             <span>Quantity:</span>
                                             <div className="flex items-center gap-4">
@@ -210,13 +298,8 @@ const ProductDetail = () => {
                                                 <button onClick={() => setQty(Math.min(product.stock, qty + 1))} className="hover:text-brand-black px-2 py-1 transition-colors">+</button>
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => setIsSizeGuideOpen(true)}
-                                            className="text-[10px] uppercase font-light tracking-widest text-brand-dark-gray border-b border-transparent hover:text-brand-black hover:border-brand-black transition-colors pb-0.5"
-                                        >
-                                            View Size Guide
-                                        </button>
                                     </div>
+
                                     <div className="flex gap-4 mt-2">
                                         <button
                                             onClick={handleAddToCart}
@@ -367,45 +450,51 @@ const ProductDetail = () => {
                                 Write a Review
                             </h2>
                             {user ? (
-                                <form onSubmit={submitReviewHandler} className="flex flex-col gap-8 max-w-lg">
-                                    {reviewError && <div className="text-red-600 text-xs font-light">{reviewError}</div>}
+                                hasPurchased ? (
+                                    <form onSubmit={submitReviewHandler} className="flex flex-col gap-8 max-w-lg">
+                                        {reviewError && <div className="text-red-600 text-xs font-light">{reviewError}</div>}
 
-                                    <div className="flex flex-col gap-4">
-                                        <label className="text-xs uppercase tracking-widest text-brand-dark-gray font-light">Rating</label>
-                                        <div className="flex gap-2 text-brand-light-gray">
-                                            {[1, 2, 3, 4, 5].map((s) => (
-                                                <button
-                                                    key={s}
-                                                    type="button"
-                                                    onClick={() => setRating(s)}
-                                                    className={`hover:text-brand-black transition-colors ${s <= rating ? 'text-brand-black' : ''}`}
-                                                >
-                                                    <Star size={24} fill={s <= rating ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1} />
-                                                </button>
-                                            ))}
+                                        <div className="flex flex-col gap-4">
+                                            <label className="text-xs uppercase tracking-widest text-brand-dark-gray font-light">Rating</label>
+                                            <div className="flex gap-2 text-brand-light-gray">
+                                                {[1, 2, 3, 4, 5].map((s) => (
+                                                    <button
+                                                        key={s}
+                                                        type="button"
+                                                        onClick={() => setRating(s)}
+                                                        className={`hover:text-brand-black transition-colors ${s <= rating ? 'text-brand-black' : ''}`}
+                                                    >
+                                                        <Star size={24} fill={s <= rating ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1} />
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div className="flex flex-col gap-4">
-                                        <label className="text-xs uppercase tracking-widest text-brand-dark-gray font-light">Your Experience</label>
-                                        <textarea
-                                            value={comment}
-                                            onChange={(e) => setComment(e.target.value)}
-                                            required
-                                            rows="4"
-                                            className="w-full py-4 bg-transparent border-b border-gray-300 text-brand-black font-light text-sm focus:outline-none focus:border-brand-black transition-colors resize-none placeholder:text-gray-400"
-                                            placeholder="Beautifully crafted..."
-                                        />
-                                    </div>
+                                        <div className="flex flex-col gap-4">
+                                            <label className="text-xs uppercase tracking-widest text-brand-dark-gray font-light">Your Experience</label>
+                                            <textarea
+                                                value={comment}
+                                                onChange={(e) => setComment(e.target.value)}
+                                                required
+                                                rows="4"
+                                                className="w-full py-4 bg-transparent border-b border-gray-300 text-brand-black font-light text-sm focus:outline-none focus:border-brand-black transition-colors resize-none placeholder:text-gray-400"
+                                                placeholder="Beautifully crafted..."
+                                            />
+                                        </div>
 
-                                    <button
-                                        type="submit"
-                                        disabled={reviewLoading}
-                                        className="bg-brand-black text-brand-white py-4 px-8 w-fit uppercase text-xs tracking-[0.2em] font-light hover:bg-brand-gold transition-colors duration-500 disabled:bg-gray-300"
-                                    >
-                                        {reviewLoading ? 'Submitting...' : 'Submit Review'}
-                                    </button>
-                                </form>
+                                        <Button
+                                            type="submit"
+                                            isLoading={reviewLoading}
+                                            className="w-fit mt-4"
+                                        >
+                                            Submit Review
+                                        </Button>
+                                    </form>
+                                ) : (
+                                    <div className="p-8 bg-brand-surface border border-gray-100 text-center">
+                                        <p className="text-brand-dark-gray font-light text-sm">Only verified purchasers may review this piece.</p>
+                                    </div>
+                                )
                             ) : (
                                 <div className="p-8 bg-brand-surface border border-gray-100 text-center">
                                     <p className="text-brand-dark-gray font-light text-sm mb-4">Please log in to share your experience.</p>

@@ -26,6 +26,7 @@ const productSchema = new mongoose.Schema({
     },
     material: { type: String, required: false },
     gemstone: { type: String, required: false },
+    sizes: [{ type: String, required: false }],
     stock: { type: Number, required: true, default: 0 },
     reviews: [reviewSchema],
     rating: { type: Number, default: 0 },

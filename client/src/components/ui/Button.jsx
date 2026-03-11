@@ -1,7 +1,8 @@
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { useRef } from 'react';
+import { Loader2 } from 'lucide-react';
 
-const Button = ({ children, variant = 'primary', className = '', style, ...props }) => {
+const Button = ({ children, variant = 'primary', isLoading = false, className = '', style, ...props }) => {
     const ref = useRef(null);
     const x = useMotionValue(0);
     const y = useMotionValue(0);
@@ -40,11 +41,15 @@ const Button = ({ children, variant = 'primary', className = '', style, ...props
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
             style={{ x: mouseXSpring, y: mouseYSpring, ...style }}
-            className={`${baseClasses} ${variantClasses[variant]} ${className}`}
-            whileTap={{ scale: 0.95 }}
+            className={`${baseClasses} ${variantClasses[variant]} ${className} ${isLoading ? 'opacity-80 cursor-not-allowed' : ''}`}
+            whileTap={{ scale: isLoading ? 1 : 0.95 }}
+            disabled={isLoading || props.disabled}
             {...props}
         >
-            <span className="relative z-10">{children}</span>
+            <span className="relative z-10 flex items-center justify-center gap-2">
+                {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {children}
+            </span>
         </motion.button>
     );
 };

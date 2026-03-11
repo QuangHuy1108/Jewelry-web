@@ -11,23 +11,44 @@ import api from '../services/api';
 // Loading from environment variable
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
-const CheckoutForm = ({ subtotal, orderItems, shippingAddress }) => {
+
+
+
+const CheckoutFormInner = () => {
+    const { cartItems, clearCart } = useCartStore();
     const stripe = useStripe();
     const elements = useElements();
     const navigate = useNavigate();
-    const { clearCart } = useCartStore();
+
+    const [address, setAddress] = useState('');
+    const [city, setCity] = useState('');
+    const [country, setCountry] = useState('');
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    const subtotal = cartItems.reduce((acc, item) => acc + item.qty * item.price, 0);
+
+    const orderItems = cartItems.map(item => ({
+        name: item.name,
+        qty: item.qty,
+        image: item.image,
+        price: item.price,
+        product: item.product,
+    }));
+
+    if (cartItems.length === 0) {
+        return <Navigate to="/cart" replace />;
+    }
 
     const submitHandler = async (e) => {
         e.preventDefault();
 
         if (!stripe || !elements) {
-            return; // Stripe.js hasn't yet loaded.
+            return;
         }
 
-        if (!shippingAddress.address || !shippingAddress.city || !shippingAddress.country) {
+        if (!address || !city || !country) {
             setError('Please fill in all shipping information.');
             return;
         }
@@ -36,21 +57,19 @@ const CheckoutForm = ({ subtotal, orderItems, shippingAddress }) => {
             setLoading(true);
             setError(null);
 
-            // 1. Create Payment Intent on the backend
             const { data } = await api.post('/payments/create-payment-intent', {
-                amount: subtotal
+                cartItems: orderItems
             });
             const clientSecret = data.clientSecret;
 
-            // 2. Confirm card payment with Stripe
             const paymentResult = await stripe.confirmCardPayment(clientSecret, {
                 payment_method: {
                     card: elements.getElement(CardElement),
                     billing_details: {
                         address: {
-                            city: shippingAddress.city,
-                            country: 'US', // Hardcoded for simplicity, usually mapped from form
-                            line1: shippingAddress.address,
+                            city: city,
+                            country: 'US',
+                            line1: address,
                         }
                     }
                 }
@@ -60,16 +79,16 @@ const CheckoutForm = ({ subtotal, orderItems, shippingAddress }) => {
                 throw new Error(paymentResult.error.message);
             }
 
-            // 3. Payment successful, save order to DB
             if (paymentResult.paymentIntent.status === 'succeeded') {
                 const orderData = {
                     orderItems,
-                    shippingAddress,
+                    shippingAddress: { address, city, country },
                     paymentMethod: 'Stripe',
                     itemsPrice: subtotal,
                     shippingPrice: 0,
                     taxPrice: 0,
                     totalPrice: subtotal,
+                    paymentIntentId: paymentResult.paymentIntent.id
                 };
 
                 await placeOrder(orderData);
@@ -92,9 +111,7 @@ const CheckoutForm = ({ subtotal, orderItems, shippingAddress }) => {
                 fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
                 fontWeight: '300',
                 letterSpacing: '0.05em',
-                '::placeholder': {
-                    color: '#9ca3af',
-                },
+                '::placeholder': { color: '#9ca3af' },
                 padding: '16px 0',
             },
             invalid: {
@@ -104,57 +121,6 @@ const CheckoutForm = ({ subtotal, orderItems, shippingAddress }) => {
         },
         hidePostalCode: true,
     };
-
-    return (
-        <form onSubmit={submitHandler} className="w-full flex justify-end">
-            <div className="w-full">
-                {error && (
-                    <div className="mb-6 p-4 bg-red-50 text-red-600 text-sm font-light text-center border border-red-100">
-                        {error}
-                    </div>
-                )}
-
-                <h2 className="text-xs uppercase tracking-[0.2em] font-light text-brand-dark-gray pb-4 border-b border-gray-200 mb-8">
-                    Secure Payment
-                </h2>
-
-                <div className="mb-10 py-2 border-b border-gray-300">
-                    <CardElement options={cardElementOptions} />
-                </div>
-
-                <button
-                    type="submit"
-                    disabled={!stripe || loading}
-                    className="w-full bg-brand-black text-brand-white py-5 uppercase text-xs tracking-[0.2em] font-light hover:bg-brand-gold transition-colors duration-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                    {loading ? 'Processing Securely...' : `Pay & Place Order • $${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-                </button>
-            </div>
-        </form>
-    );
-};
-
-
-const Checkout = () => {
-    const { cartItems } = useCartStore();
-
-    const [address, setAddress] = useState('');
-    const [city, setCity] = useState('');
-    const [country, setCountry] = useState('');
-
-    const subtotal = cartItems.reduce((acc, item) => acc + item.qty * item.price, 0);
-
-    const orderItems = cartItems.map(item => ({
-        name: item.name,
-        qty: item.qty,
-        image: item.image,
-        price: item.price,
-        product: item.product,
-    }));
-
-    if (cartItems.length === 0) {
-        return <Navigate to="/cart" replace />;
-    }
 
     const inputClasses = "w-full py-4 bg-transparent border-b border-gray-300 text-brand-black font-light text-sm focus:outline-none focus:border-brand-black transition-colors rounded-none placeholder:text-gray-400";
 
@@ -178,7 +144,7 @@ const Checkout = () => {
                     </motion.h1>
                 </header>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
+                <form onSubmit={submitHandler} className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
                     {/* Left Column: Forms */}
                     <div className="lg:col-span-7 flex flex-col gap-12">
                         <motion.div
@@ -251,20 +217,43 @@ const Checkout = () => {
                                 <span>${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
 
-                            {/* Stripe Elements Wrap the Payment Form */}
-                            <Elements stripe={stripePromise}>
-                                <CheckoutForm
-                                    subtotal={subtotal}
-                                    orderItems={orderItems}
-                                    shippingAddress={{ address, city, country }}
-                                />
-                            </Elements>
+                            <div className="w-full">
+                                {error && (
+                                    <div className="mb-6 p-4 bg-red-50 text-red-600 text-sm font-light text-center border border-red-100">
+                                        {error}
+                                    </div>
+                                )}
+
+                                <h2 className="text-xs uppercase tracking-[0.2em] font-light text-brand-dark-gray pb-4 border-b border-gray-200 mb-8">
+                                    Secure Payment
+                                </h2>
+
+                                <div className="mb-10 py-2 border-b border-gray-300">
+                                    <CardElement options={cardElementOptions} />
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={!stripe || loading}
+                                    className="w-full bg-brand-black text-brand-white py-5 uppercase text-xs tracking-[0.2em] font-light hover:bg-brand-gold transition-colors duration-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                >
+                                    {loading ? 'Processing Securely...' : `Pay & Place Order • $${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+                                </button>
+                            </div>
                         </motion.div>
                     </div>
 
-                </div>
+                </form>
             </div>
         </motion.div>
+    );
+};
+
+const Checkout = () => {
+    return (
+        <Elements stripe={stripePromise}>
+            <CheckoutFormInner />
+        </Elements>
     );
 };
 
